@@ -15,6 +15,18 @@
 #ifndef __SFTP_HPP
 #define __SFTP_HPP
 
+#define RC_ERR_HANDLE(funcname, th, cmd)                                       \
+  rc = LIBSSH2_ERROR_EAGAIN;                                                   \
+  while (rc == LIBSSH2_ERROR_EAGAIN) {                                         \
+    rc = cmd;                                                                  \
+    if (rc == LIBSSH2_ERROR_EAGAIN) {                                          \
+      th->wait();                                                              \
+    }                                                                          \
+  }                                                                            \
+  if (rc < 0) {                                                                \
+    throw formatted_error("[" funcname "] %s", th->error_msg(rc)->c_str());    \
+  }
+
 class SFTP;
 
 class SFTPAttributes : public Attributes {
@@ -89,21 +101,25 @@ class SFTP : public TransferProtocol {
 private:
   uint32_t hostaddr;
   libssh2_socket_t sock;
-  int i, auth_pw = 1;
+  int i = 0;
+  int auth_pw = 0;
   struct sockaddr_in sin;
   const char *fingerprint;
   int rc;
-  LIBSSH2_SESSION *session = NULL;
   LIBSSH2_SFTP *sftp_session;
   LIBSSH2_SFTP_HANDLE *sftp_handle;
+  char *userauthlist;
 
   libssh2_struct_stat_size total = 0;
   int spin = 0;
 
 public:
+  LIBSSH2_SESSION *session = NULL;
+
   SFTP();
   ~SFTP();
 
+  std::optional<std::string> error_msg();
   std::optional<std::string> error_msg(int err);
   int wait();
 

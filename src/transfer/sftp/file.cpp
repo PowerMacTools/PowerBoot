@@ -15,18 +15,6 @@
     .atime = attr->atime(), .mtime = attr->mtime(),                            \
   }
 
-#define RC_ERR_HANDLE(funcname, th, cmd)                                       \
-  rc = LIBSSH2_ERROR_EAGAIN;                                                   \
-  while (rc == LIBSSH2_ERROR_EAGAIN) {                                         \
-    rc = cmd;                                                                  \
-    if (rc == LIBSSH2_ERROR_EAGAIN) {                                          \
-      th->wait();                                                              \
-    }                                                                          \
-  }                                                                            \
-  if (rc < 0) {                                                                \
-    throw formatted_error("[" funcname "] %s", th->error_msg(rc)->c_str());    \
-  };
-
 Attributes *SFTP::lstat(std::string path, Attributes *attr) {
   LIBSSH2_SFTP_ATTRIBUTES attrs = ATTRIBUTE_TRANSLATE(attr);
 
@@ -36,7 +24,7 @@ Attributes *SFTP::lstat(std::string path, Attributes *attr) {
   return new SFTPAttributes(attrs);
 };
 void SFTP::mkdir(std::string path, int mode) {
-  RC_ERR_HANDLE("libssh2_sftp_lstat", this,
+  RC_ERR_HANDLE("libssh2_sftp_mkdir", this,
                 libssh2_sftp_mkdir(sftp_session, path.c_str(), mode));
 };
 FileHandle *SFTP::openfile(std::string filename, unsigned long flags,
@@ -200,33 +188,22 @@ void SFTPFileHandle::sync() {
 };
 
 std::optional<File> SFTPDirHandle::next() {
-  // Get the attributes of the current file so that we can get its length.
-  LIBSSH2_SFTP_ATTRIBUTES attrs = {0};
-
-  RC_ERR_HANDLE("dir/libssh2_sftp_fstat", this->sftp,
-                libssh2_sftp_fstat(this->handle, &attrs));
-
-  auto len = attrs.filesize;
-
-  char *_buffer = (char *)malloc(len * 2);
-  char *_longentry = (char *)malloc(1024);
+  char _buffer[512];
+  char _longentry[512];
+  LIBSSH2_SFTP_ATTRIBUTES attrs;
 
   rc = LIBSSH2_ERROR_EAGAIN;
 
   RC_ERR_HANDLE("libssh2_sftp_readdir_ex", this->sftp,
-                libssh2_sftp_readdir_ex(this->handle, _buffer, len, _longentry,
-                                        255, &attrs));
+                libssh2_sftp_readdir_ex(this->handle, _buffer, sizeof(_buffer),
+                                        _longentry, sizeof(_longentry),
+                                        &attrs));
 
-  if (rc < 0 && rc != LIBSSH2_ERROR_EAGAIN) {
-    auto err = this->sftp->error_msg(rc);
-    if (err.has_value()) {
-
-      throw formatted_error("[libssh2_sftp_readdir_ex] %s",
-                            err.value().c_str());
-    }
+  if (rc == 0) {
+    return {};
   }
-  auto buffer = std::vector<int8_t>(_buffer, _buffer + len);
-  auto longentry = std::string(_longentry, _longentry + 1024);
+  auto buffer = std::string(_buffer, _buffer + 512);
+  auto longentry = std::string(_longentry, _longentry + 512);
 
   return File(buffer, longentry, new SFTPAttributes(attrs));
 };

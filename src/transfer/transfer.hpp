@@ -55,19 +55,18 @@ class FileHandle {
 };
 
 /**
-  Read-only file data returned by DirIterator.
+  Read-only file data.
 */
 class File {
 private:
-  std::vector<int8_t> _buffer;
+  std::string _buffer;
   std::string _longentry;
   Attributes *_attributes;
 
 public:
-  File(std::vector<int8_t> buffer, std::string longentry,
-       Attributes *attributes)
+  File(std::string buffer, std::string longentry, Attributes *attributes)
       : _buffer(buffer), _longentry(longentry), _attributes(attributes) {};
-  std::vector<int8_t> *buffer() { return &this->_buffer; };
+  std::string *buffer() { return &this->_buffer; };
   std::string *longentry() { return &this->_longentry; };
   Attributes *attributes() { return this->_attributes; };
 };

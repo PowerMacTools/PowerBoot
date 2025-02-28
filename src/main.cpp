@@ -3,11 +3,13 @@
 #include <cstdio>
 #include <optional>
 #include <stdexcept>
+#include <stdio.h>
 
 int main(int argc, char *argv[]) {
   try {
     TransferProtocol *sftp = new SFTP();
-    sftp->connect("192.168.1.145", 22, "gavin", "UnitedSenora02", "", "",
+    sftp->connect("192.168.1.145", 22, "gavin", "UnitedSenora02",
+                  "/home/gavin/.ssh/id_rsa.pub", "/home/gavin/.ssh/id_rsa",
                   "/home/gavin/");
 
     auto dir = sftp->opendir(".");
@@ -16,8 +18,14 @@ int main(int argc, char *argv[]) {
 
     for (; file.has_value(); file = dir->next()) {
       auto val = file.value();
-      auto st = val.longentry();
-      printf("%s\n", st->c_str());
+      auto filename = *val.buffer();
+
+      Attributes *attr = sftp->stat(filename);
+      if (attr == NULL) {
+        printf("%s\n", filename.c_str());
+      } else {
+        printf("[%ldKB] %s\n", attr->filesize(), filename.c_str());
+      }
     }
 
     dir->close();
