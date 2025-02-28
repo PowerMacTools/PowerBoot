@@ -1,5 +1,7 @@
-#include "../../utils/error.hpp"
-#include "sftp.hpp"
+#ifdef __linux__
+
+#include "../../../../utils/error.hpp"
+#include "../../sftp.hpp"
 #include <arpa/inet.h>
 #include <cstdio>
 #include <libssh2.h>
@@ -150,20 +152,43 @@ void SFTP::connect(std::string addr, uint16_t port, std::string username,
       }
     }
   } while (!sftp_session);
-
-  /* Request a file via SFTP */
-  do {
-    sftp_handle =
-        libssh2_sftp_open(sftp_session, sftppath.c_str(), LIBSSH2_FXF_READ, 0);
-    if (!sftp_handle) {
-      if (libssh2_session_last_errno(session) != LIBSSH2_ERROR_EAGAIN) {
-        throw formatted_error("Unable to open file with SFTP: %s\n",
-                              this->error_msg()->c_str());
-      } else {
-        this->wait();
-      }
-    }
-  } while (!sftp_handle);
-
   return;
 }
+
+int SFTP::wait() {
+  struct timeval timeout;
+  int rc;
+  fd_set fd;
+  fd_set *writefd = NULL;
+  fd_set *readfd = NULL;
+  int dir;
+
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 100;
+
+  FD_ZERO(&fd);
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+  FD_SET(sock, &fd);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+  /* now make sure we wait in the correct direction */
+  // dir = libssh2_session_block_directions(session);
+
+  if (dir & LIBSSH2_SESSION_BLOCK_INBOUND)
+    readfd = &fd;
+
+  if (dir & LIBSSH2_SESSION_BLOCK_OUTBOUND)
+    writefd = &fd;
+
+  rc = select((int)(sock + 1), readfd, writefd, NULL, &timeout);
+
+  return rc;
+}
+
+#endif

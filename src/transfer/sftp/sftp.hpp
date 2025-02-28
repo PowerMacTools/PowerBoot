@@ -1,16 +1,17 @@
 #include "../transfer.hpp"
-#include <arpa/inet.h>
 #include <cstdint>
-#include <libssh2.h>
-#include <libssh2_sftp.h>
-#include <netinet/in.h>
+
 #include <optional>
 #include <stdio.h>
 #include <string>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <unistd.h>
 #include <vector>
+
+#include <libssh2.h>
+#include <libssh2_sftp.h>
+
+#ifdef __linux__
+#include <netinet/in.h>
+#endif
 
 #ifndef __SFTP_HPP
 #define __SFTP_HPP
@@ -103,7 +104,7 @@ private:
   libssh2_socket_t sock;
   int i = 0;
   int auth_pw = 0;
-  struct sockaddr_in sin;
+
   const char *fingerprint;
   int rc;
   LIBSSH2_SFTP *sftp_session;
@@ -112,6 +113,10 @@ private:
 
   libssh2_struct_stat_size total = 0;
   int spin = 0;
+
+#ifdef __linux__
+  struct sockaddr_in sin;
+#endif
 
 public:
   LIBSSH2_SESSION *session = NULL;

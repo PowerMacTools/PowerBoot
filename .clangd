@@ -1,0 +1,4 @@
+CompileFlags:
+  Add:
+    - "-I/opt/Retro68/toolchain/universal/CIncludes/"
+    - "-I/opt/Retro68/toolchain/universal/RIncludes/"
