@@ -11,6 +11,5 @@ function make_for() {
     cd .. 
     return $status
 }
-
-# make_for "68k" "retro68" "$RETRO68_TOOLCHAIN_PATH/m68k-apple-macos/cmake/retro68.toolchain.cmake"
-make_for "PowerPC" "retroppc" "$RETRO68_TOOLCHAIN_PATH/powerpc-apple-macos/cmake/retroppc.toolchain.cmake"
+make_for "68k" "retro68" "$RETRO68_TOOLCHAIN_PATH/m68k-apple-macos/cmake/retro68.toolchain.cmake"
+#make_for "PowerPC" "retroppc" "$RETRO68_TOOLCHAIN_PATH/powerpc-apple-macos/cmake/retroppc.toolchain.cmake"

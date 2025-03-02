@@ -1,10 +1,8 @@
+# basic bullshit
 project(PowerBoot)
-
 cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 FILE(GLOB_RECURSE sources ./src/*.c ./src/*.cpp ./src/*.r)
 
 # binary creation
@@ -20,16 +18,15 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "disable libssh2 shared libs" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "disable libssh2 examples" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "disable libssh2 tests" FORCE)
 
-# cloning/linking libssh2
+# cloning/linking libssh2.
+# if we're compiling for mac, use the submodules.
 if(CMAKE_SYSTEM_NAME MATCHES Retro)
-# the libssh2 port depends on another mbedtls port
 set(ENABLE_PROGRAMS OFF CACHE BOOL "disable mbedtls programs" FORCE)
 set(UNSAFE_BUILD ON CACHE BOOL "ignore mac os jank for mbedtls" FORCE)
 set(ENABLE_TESTING OFF CACHE BOOL "disable mbedtls tests" FORCE)
 add_subdirectory(opentransport-mbedtls)
-
 add_subdirectory(opentransport-libssh2)
-
+# otherwise, use FetchContent to get upstream libssh2.
 else()
 FetchContent_Declare(
     libssh2
@@ -40,7 +37,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(libssh2)
 endif()
 
-
+# link libssh2.
+# on mac, we also wanna link the other dependencies and add some function flags.
 if(CMAKE_SYSTEM_NAME MATCHES Retro)
 IF(CMAKE_SYSTEM_NAME MATCHES Retro68)
 # for 68k
