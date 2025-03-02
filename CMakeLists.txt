@@ -13,7 +13,6 @@ add_executable(${PROJECT_NAME} ${sources})
 endif()
 
 # libssh2 settings
-set(CRYPTO_BACKEND mbedTLS)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "disable libssh2 shared libs" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "disable libssh2 examples" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "disable libssh2 tests" FORCE)
@@ -21,6 +20,8 @@ set(BUILD_TESTING OFF CACHE BOOL "disable libssh2 tests" FORCE)
 # cloning/linking libssh2.
 # if we're compiling for mac, use the submodules.
 if(CMAKE_SYSTEM_NAME MATCHES Retro)
+# also on mac we use mbedtls.
+set(CRYPTO_BACKEND mbedTLS)
 set(ENABLE_PROGRAMS OFF CACHE BOOL "disable mbedtls programs" FORCE)
 set(UNSAFE_BUILD ON CACHE BOOL "ignore mac os jank for mbedtls" FORCE)
 set(ENABLE_TESTING OFF CACHE BOOL "disable mbedtls tests" FORCE)
