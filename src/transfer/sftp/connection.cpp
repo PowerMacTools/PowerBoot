@@ -1,8 +1,6 @@
-#ifdef __linux__
 
-#include "../../../../utils/error.hpp"
-#include "../../sftp.hpp"
-#include <arpa/inet.h>
+#include "../../utils/error.hpp"
+#include "sftp.hpp"
 #include <cstdio>
 #include <libssh2.h>
 #include <libssh2_sftp.h>
@@ -190,5 +188,3 @@ int SFTP::wait() {
 
   return rc;
 }
-
-#endif

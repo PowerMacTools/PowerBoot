@@ -9,7 +9,10 @@
 #include <libssh2.h>
 #include <libssh2_sftp.h>
 
-#ifdef __linux__
+#ifdef __RETRO__
+#include <unixnet2mac.h>
+#else
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
 
@@ -114,9 +117,7 @@ private:
   libssh2_struct_stat_size total = 0;
   int spin = 0;
 
-#ifdef __linux__
   struct sockaddr_in sin;
-#endif
 
 public:
   LIBSSH2_SESSION *session = NULL;
