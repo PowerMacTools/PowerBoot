@@ -6,6 +6,22 @@
 #include <string>
 #include <vector>
 
+class ConnectionOptions {
+public:
+  std::string addr;
+  uint16_t port;
+  std::string username;
+  std::string password;
+  std::string pubkey;
+  std::string privkey;
+  std::string sftppath;
+  ConnectionOptions(std::string addr, uint16_t port, std::string username,
+                    std::string password, std::string pubkey,
+                    std::string privkey, std::string sftppath)
+      : addr(addr), port(port), username(username), password(password),
+        pubkey(pubkey), privkey(privkey), sftppath(sftppath) {};
+};
+
 /**
   Attributes of a file.
 */
@@ -83,9 +99,7 @@ public:
 class TransferProtocol {
 private:
 public:
-  virtual void connect(std::string addr, uint16_t port, std::string username,
-                       std::string password, std::string pubkey,
-                       std::string privkey, std::string path) = 0;
+  virtual void connect(ConnectionOptions options) = 0;
   virtual Attributes *lstat(std::string path, Attributes *attributes) = 0;
   virtual void mkdir(std::string path, int mode) = 0;
 

@@ -40,8 +40,8 @@ FileHandle *SFTP::openfile(std::string filename, unsigned long flags,
       if (libssh2_session_last_errno(session) == LIBSSH2_ERROR_EAGAIN) {
         this->wait(); /* now we wait */
       } else {
-        throw formatted_error("Unable to open directory: %s\n",
-                              this->error_msg(rc)->c_str());
+        error_throw("Unable to open directory: %s\n",
+                    this->error_msg(rc)->c_str());
       }
     }
   } while (!handle);
@@ -60,8 +60,8 @@ DirHandle *SFTP::opendir(std::string path) {
       if (libssh2_session_last_errno(session) == LIBSSH2_ERROR_EAGAIN) {
         this->wait(); /* now we wait */
       } else {
-        throw formatted_error("Unable to open directory: %s\n",
-                              this->error_msg(rc)->c_str());
+        error_throw("Unable to open directory: %s\n",
+                    this->error_msg(rc)->c_str());
       }
     }
   } while (!handle);

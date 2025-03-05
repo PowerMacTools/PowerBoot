@@ -8,14 +8,14 @@
 SFTP::SFTP() {
   rc = libssh2_init(0);
   if (rc) {
-    throw formatted_error("libssh2 initialization failed (%s)", rc);
+    error_throw("libssh2 initialization failed (%s)", rc);
   }
 
   /* Create a session instance */
   session = libssh2_session_init();
   if (!session) {
-    throw formatted_error("Could not initialize SSH session:",
-                          this->error_msg(rc)->c_str());
+    error_throw("Could not initialize SSH session:",
+                this->error_msg(rc)->c_str());
   }
 
   /* Since we have set non-blocking, tell libssh2 we are non-blocking */
@@ -45,7 +45,6 @@ SFTP::~SFTP() {
 
 std::optional<std::string> SFTP::error_msg() { return this->error_msg(0); }
 
-
 std::optional<std::string> SFTP::error_msg(int err) {
   if (err == 1) {
     return {};
@@ -58,8 +57,6 @@ std::optional<std::string> SFTP::error_msg(int err) {
   snprintf(st2, 255, " (%d)", err);
   return std::string(st) + std::string(st2);
 }
-
-
 
 SFTPAttributes::SFTPAttributes(LIBSSH2_SFTP_ATTRIBUTES _attr) {
   this->attr = _attr;

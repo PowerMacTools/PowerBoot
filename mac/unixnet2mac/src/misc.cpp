@@ -1,6 +1,9 @@
 #include "../include/unixnet2mac.h"
 #include "OpenTransport.h"
+#include "console/Console.hpp"
 #include "internal.hpp"
+#include <cstdarg>
+#include <cstdlib>
 #include <ctype.h>
 
 // copied from bsd lol
@@ -87,3 +90,21 @@ Socket::~Socket() { OTCloseProvider(endpoint); }
 
 std::unordered_map<size_t, Socket *> openSockets =
     std::unordered_map<size_t, Socket *>();
+
+void mac_error_throw(const char *format, ...) {
+  va_list arglist;
+
+  va_start(arglist, format);
+
+  char *buf = (char *)malloc(255);
+  vsnprintf(buf, 255, format, arglist);
+
+  va_end(arglist);
+
+  printf("%s\n", buf);
+  if (!retro::Console::currentInstance) {
+    retro::InitConsole();
+  }
+  retro::Console::currentInstance->ReadLine();
+  exit(0);
+}

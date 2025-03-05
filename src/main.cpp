@@ -1,16 +1,20 @@
+#include "console/Console.hpp"
 #include "transfer/sftp/sftp.hpp"
 #include "transfer/transfer.hpp"
+#include "utils/error.hpp"
 #include <cstdio>
+#include <exception>
 #include <optional>
 #include <stdexcept>
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
+  printf("Starting PowerBoot...\n");
   try {
     TransferProtocol *sftp = new SFTP();
-    sftp->connect("192.168.1.145", 22, "gavin", "UnitedSenora02",
-                  "/home/gavin/.ssh/id_rsa.pub", "/home/gavin/.ssh/id_rsa",
-                  "/home/gavin/");
+    auto opt = ConnectionOptions("65.108.208.56", 22, "gavin", "0987Navel4321",
+                                 ".:id_rsa.pub", ".:id_rsa", "/home/gavin/");
+    sftp->connect(opt);
 
     auto dir = sftp->opendir(".");
 
@@ -29,11 +33,12 @@ int main(int argc, char *argv[]) {
     }
 
     dir->close();
-  } catch (std::runtime_error *ex) {
-    printf("%s\n", ex->what());
-  } catch (std::runtime_error ex) {
-    printf("%s\n", ex.what());
+  } catch (std::runtime_error &ex) {
+    printf("Runtime Error: %s\n", ex.what());
+  } catch (std::exception &ex) {
+    printf("Unhandled Exception: %s\n", ex.what());
   }
-
-  printf("%d\n",getchar());
+#ifdef __RETRO__
+  retro::Console::currentInstance->ReadLine();
+#endif
 }

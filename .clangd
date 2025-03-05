@@ -1,6 +1,6 @@
 CompileFlags:
   Add:
-    - "-Imac/unixnet2mac/include/"
-    - "-I/opt/Retro68/toolchain/universal/CIncludes/"
-    - "-I/opt/Retro68/toolchain/universal/RIncludes/"
-    - "-D UNDERCLANGD"
+    - -I./mac/unixnet2mac/include/
+    - -I./include/
+    - -I/opt/Retro68/toolchain/universal/CIncludes/
+    - -I/opt/Retro68/toolchain/universal/RIncludes/

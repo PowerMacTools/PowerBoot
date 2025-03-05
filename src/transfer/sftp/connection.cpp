@@ -48,109 +48,107 @@ static void kbd_callback(const char *name, int name_len,
   }
 }
 
-void SFTP::connect(std::string addr, uint16_t port, std::string username,
-                   std::string password, std::string pubkey,
-                   std::string privkey, std::string sftppath) {
-  /*
-   * The application code is responsible for creating the socket
-   * and establishing the connection
-   */
-  sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock == LIBSSH2_INVALID_SOCKET) {
-    throw formatted_error("failed to create socket.");
-  }
+void SFTP::connect(ConnectionOptions options) {
 
-  hostaddr = inet_addr(addr.c_str());
-  sin.sin_family = AF_INET;
-  sin.sin_port = htons(port);
-  sin.sin_addr.s_addr = hostaddr;
-  if (::connect(sock, (struct sockaddr *)(&sin), sizeof(struct sockaddr_in))) {
-    throw formatted_error("failed to connect.");
-  }
-
-  printf("[addr]\t%s (%d)\n", addr.c_str(), hostaddr);
-  printf("[port]\t%d\n", port);
-  printf("[username]\t%s\n", username.c_str());
-  printf("[password]\t%s\n", password.c_str());
-  printf("[pubkey]\t%s\n", pubkey.c_str());
-  printf("[privkey]\t%s\n", privkey.c_str());
-  printf("[sftppath]\t%s\n", sftppath.c_str());
-
-  /* ... start it up. This will trade welcome banners, exchange keys,
-   * and setup crypto, compression, and MAC layers
-   */
-  while ((rc = libssh2_session_handshake(session, sock)) ==
-         LIBSSH2_ERROR_EAGAIN)
-    ;
-  if (rc) {
-    throw formatted_error("Failure establishing SSH session: {}", rc);
-  }
-
-  fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
-
-  /* check what authentication methods are available */
-
-  while (!userauthlist) {
-    userauthlist =
-        libssh2_userauth_list(session, username.c_str(), username.size());
-    this->wait();
-  }
-  if (userauthlist) {
-    fprintf(stdout, "Authentication methods: %s\n", userauthlist);
-
-    if (strstr(userauthlist, "publickey")) {
-      try {
-        RC_ERR_HANDLE("libssh2_userauth_publickey_fromfile", this,
-                      libssh2_userauth_publickey_fromfile(
-                          session, username.c_str(), pubkey.c_str(),
-                          privkey.c_str(), password.c_str()));
-        goto success;
-      } catch (std::runtime_error ex) {
-        printf("%s\n", ex.what());
-      }
+  try {
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == LIBSSH2_INVALID_SOCKET) {
+      error_throw("failed to create socket.");
     }
-    if (strstr(userauthlist, "keyboard-interactive")) {
-      try {
-        RC_ERR_HANDLE("libssh2_userauth_keyboard_interactive", this,
-                      libssh2_userauth_keyboard_interactive(
-                          session, username.c_str(), &kbd_callback));
-        goto success;
-      } catch (std::runtime_error ex) {
-        printf("%s\n", ex.what());
-      }
+
+    hostaddr = inet_addr(options.addr.c_str());
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(options.port);
+    sin.sin_addr.s_addr = hostaddr;
+    if (::connect(sock, (struct sockaddr *)(&sin),
+                  sizeof(struct sockaddr_in))) {
+      error_throw("failed to connect.");
     }
-    if (strstr(userauthlist, "password")) {
-      try {
-        RC_ERR_HANDLE("libssh2_userauth_password", this,
-                      libssh2_userauth_password(session, username.c_str(),
-                                                password.c_str()));
-        goto success;
-      } catch (std::runtime_error ex) {
-        printf("%s\n", ex.what());
-      }
+
+    printf("[addr]\t%s (%d)\n", options.addr.c_str(), hostaddr);
+    printf("[port]\t%d\n", options.port);
+    printf("[username]\t%s\n", options.username.c_str());
+    printf("[password]\t%s\n", options.password.c_str());
+    printf("[pubkey]\t%s\n", options.pubkey.c_str());
+    printf("[privkey]\t%s\n", options.privkey.c_str());
+    printf("[sftppath]\t%s\n", options.sftppath.c_str());
+
+    while ((rc = libssh2_session_handshake(session, sock)) ==
+           LIBSSH2_ERROR_EAGAIN)
+      ;
+    if (rc) {
+      error_throw("Failure establishing SSH session: {}", rc);
     }
-    throw std::runtime_error("failed to connect");
-  success:
-    printf("Success\n");
-  } else {
-    throw formatted_error("Failure getting autentication methods: %s",
-                          this->error_msg()->c_str());
+
+    fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
+
+    while (!userauthlist) {
+      userauthlist = libssh2_userauth_list(session, options.username.c_str(),
+                                           options.username.size());
+      this->wait();
+    }
+    if (userauthlist) {
+      fprintf(stdout, "Authentication methods: %s\n", userauthlist);
+
+      if (strstr(userauthlist, "publickey")) {
+        if (libssh2_userauth_publickey_fromfile_ex(
+                (session), (options.username.c_str()),
+                (unsigned int)strlen(options.username.c_str()),
+                (options.pubkey.c_str()), (options.privkey.c_str()),
+                (options.password.c_str())) >= 0) {
+          goto success;
+        } else {
+          printf("PublicKey Auth failed: %s\n", this->error_msg(rc)->c_str());
+        }
+      }
+      if (strstr(userauthlist, "keyboard-interactive")) {
+        if (libssh2_userauth_keyboard_interactive(
+                session, options.username.c_str(), &kbd_callback) >= 0) {
+          goto success;
+        } else {
+          printf("Interactive Keyboard Auth failed: %s\n",
+                 this->error_msg(rc)->c_str());
+        }
+      }
+      if (strstr(userauthlist, "password")) {
+        if (libssh2_userauth_password(session, options.username.c_str(),
+                                      options.password.c_str()) >= 0) {
+          goto success;
+        } else {
+          printf("Password Auth failed: %s\n", this->error_msg(rc)->c_str());
+        }
+      }
+      error_throw("failed to connect");
+    success:
+      printf("Success\n");
+    } else {
+      error_throw("Failure getting autentication methods: %s",
+                  this->error_msg()->c_str());
+    }
+
+    do {
+      sftp_session = libssh2_sftp_init(session);
+
+      if (!sftp_session) {
+        if (rc = libssh2_session_last_errno(session);
+            rc == LIBSSH2_ERROR_EAGAIN) {
+          this->wait();
+        } else {
+          error_throw("Unable to init SFTP session: %s\n",
+                      this->error_msg()->c_str());
+        }
+      }
+    } while (!sftp_session);
+    return;
+  } catch (std::runtime_error *ex) {
+    throw ex;
+  } catch (std::runtime_error &ex) {
+    throw ex;
+  } catch (std::exception &ex) {
+    throw ex;
+  } catch (std::exception *ex) {
+    throw ex;
   }
-
-  do {
-    sftp_session = libssh2_sftp_init(session);
-
-    if (!sftp_session) {
-      if (rc = libssh2_session_last_errno(session);
-          rc == LIBSSH2_ERROR_EAGAIN) {
-        this->wait(); /* now we wait */
-      } else {
-        throw formatted_error("Unable to init SFTP session: %s\n",
-                              this->error_msg()->c_str());
-      }
-    }
-  } while (!sftp_session);
-  return;
 }
 
 int SFTP::wait() {

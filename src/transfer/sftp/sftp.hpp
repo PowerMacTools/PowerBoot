@@ -28,7 +28,7 @@
     }                                                                          \
   }                                                                            \
   if (rc < 0) {                                                                \
-    throw formatted_error("[" funcname "] %s", th->error_msg(rc)->c_str());    \
+    error_throw("[" funcname "] %s", th->error_msg(rc)->c_str());              \
   }
 
 class SFTP;
@@ -129,9 +129,7 @@ public:
   std::optional<std::string> error_msg(int err);
   int wait();
 
-  void connect(std::string addr, uint16_t port, std::string username,
-               std::string password, std::string pubkey, std::string privkey,
-               std::string sftppath) override;
+  void connect(ConnectionOptions options) override;
 
   Attributes *lstat(std::string path, Attributes *attributes) override;
   void mkdir(std::string path, int mode) override;

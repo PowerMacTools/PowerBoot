@@ -1,191 +1,468 @@
 #include "internal.hpp"
+#include <cstdarg>
 #include <stdexcept>
 
-void ThrowOSErr(OSErr err) {
+void __throw_os_err(const char *file, int line, const char *func, OSErr err) {
   switch (err) {
   case kOTOutOfMemoryErr:
-    throw std::runtime_error("kOTOutOfMemoryErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTOutOfMemoryErr",
+                    func, file, line);
+    return;
   case kOTNotFoundErr:
-    throw std::runtime_error("kOTNotFoundErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNotFoundErr",
+                    func, file, line);
+    return;
   case kOTDuplicateFoundErr:
-    throw std::runtime_error("kOTDuplicateFoundErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTDuplicateFoundErr",
+                    func, file, line);
+    return;
   case kOTBadAddressErr:
-    throw std::runtime_error("kOTBadAddressErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadAddressErr",
+                    func, file, line);
+    return;
   case kOTBadOptionErr:
-    throw std::runtime_error("kOTBadOptionErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadOptionErr",
+                    func, file, line);
+    return;
   case kOTAccessErr:
-    throw std::runtime_error("kOTAccessErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kOTAccessErr",
+        func, file, line);
+    return;
   case kOTBadReferenceErr:
-    throw std::runtime_error("kOTBadReferenceErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadReferenceErr",
+                    func, file, line);
+    return;
   case kOTNoAddressErr:
-    throw std::runtime_error("kOTNoAddressErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNoAddressErr",
+                    func, file, line);
+    return;
   case kOTOutStateErr:
-    throw std::runtime_error("kOTOutStateErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTOutStateErr",
+                    func, file, line);
+    return;
   case kOTBadSequenceErr:
-    throw std::runtime_error("kOTBadSequenceErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadSequenceErr",
+                    func, file, line);
+    return;
   case kOTSysErrorErr:
-    throw std::runtime_error("kOTSysErrorErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTSysErrorErr",
+                    func, file, line);
+    return;
   case kOTLookErr:
-    throw std::runtime_error("kOTLookErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kOTLookErr",
+        func, file, line);
+    return;
   case kOTBadDataErr:
-    throw std::runtime_error("kOTBadDataErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadDataErr",
+                    func, file, line);
+    return;
   case kOTBufferOverflowErr:
-    throw std::runtime_error("kOTBufferOverflowErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBufferOverflowErr",
+                    func, file, line);
+    return;
   case kOTFlowErr:
-    throw std::runtime_error("kOTFlowErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kOTFlowErr",
+        func, file, line);
+    return;
   case kOTNoDataErr:
-    throw std::runtime_error("kOTNoDataErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kOTNoDataErr",
+        func, file, line);
+    return;
   case kOTNoDisconnectErr:
-    throw std::runtime_error("kOTNoDisconnectErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNoDisconnectErr",
+                    func, file, line);
+    return;
   case kOTNoUDErrErr:
-    throw std::runtime_error("kOTNoUDErrErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNoUDErrErr",
+                    func, file, line);
+    return;
   case kOTBadFlagErr:
-    throw std::runtime_error("kOTBadFlagErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadFlagErr",
+                    func, file, line);
+    return;
   case kOTNoReleaseErr:
-    throw std::runtime_error("kOTNoReleaseErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNoReleaseErr",
+                    func, file, line);
+    return;
   case kOTNotSupportedErr:
-    throw std::runtime_error("kOTNotSupportedErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNotSupportedErr",
+                    func, file, line);
+    return;
   case kOTStateChangeErr:
-    throw std::runtime_error("kOTStateChangeErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTStateChangeErr",
+                    func, file, line);
+    return;
   case kOTNoStructureTypeErr:
-    throw std::runtime_error("kOTNoStructureTypeErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTNoStructureTypeErr",
+                    func, file, line);
+    return;
   case kOTBadNameErr:
-    throw std::runtime_error("kOTBadNameErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadNameErr",
+                    func, file, line);
+    return;
   case kOTBadQLenErr:
-    throw std::runtime_error("kOTBadQLenErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadQLenErr",
+                    func, file, line);
+    return;
   case kOTAddressBusyErr:
-    throw std::runtime_error("kOTAddressBusyErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTAddressBusyErr",
+                    func, file, line);
+    return;
   case kOTIndOutErr:
-    throw std::runtime_error("kOTIndOutErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kOTIndOutErr",
+        func, file, line);
+    return;
   case kOTProviderMismatchErr:
-    throw std::runtime_error("kOTProviderMismatchErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTProviderMismatchErr",
+                    func, file, line);
+    return;
   case kOTResQLenErr:
-    throw std::runtime_error("kOTResQLenErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTResQLenErr",
+                    func, file, line);
+    return;
   case kOTResAddressErr:
-    throw std::runtime_error("kOTResAddressErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTResAddressErr",
+                    func, file, line);
+    return;
   case kOTQFullErr:
-    throw std::runtime_error("kOTQFullErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kOTQFullErr",
+        func, file, line);
+    return;
   case kOTProtocolErr:
-    throw std::runtime_error("kOTProtocolErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTProtocolErr",
+                    func, file, line);
+    return;
   case kOTBadSyncErr:
-    throw std::runtime_error("kOTBadSyncErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadSyncErr",
+                    func, file, line);
+    return;
   case kOTCanceledErr:
-    throw std::runtime_error("kOTCanceledErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTCanceledErr",
+                    func, file, line);
+    return;
   case kEPERMErr:
-    throw std::runtime_error("kEPERMErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEPERMErr",
+        func, file, line);
+    return;
   case kENORSRCErr:
-    throw std::runtime_error("kENORSRCErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENORSRCErr",
+        func, file, line);
+    return;
   case kEINTRErr:
-    throw std::runtime_error("kEINTRErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEINTRErr",
+        func, file, line);
+    return;
   case kEIOErr:
-    throw std::runtime_error("kEIOErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEIOErr", func,
+        file, line);
+    return;
   case kENXIOErr:
-    throw std::runtime_error("kENXIOErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENXIOErr",
+        func, file, line);
+    return;
   case kEBADFErr:
-    throw std::runtime_error("kEBADFErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEBADFErr",
+        func, file, line);
+    return;
   case kEAGAINErr:
-    throw std::runtime_error("kEAGAINErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEAGAINErr",
+        func, file, line);
+    return;
   case kEACCESErr:
-    throw std::runtime_error("kEACCESErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEACCESErr",
+        func, file, line);
+    return;
   case kEFAULTErr:
-    throw std::runtime_error("kEFAULTErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEFAULTErr",
+        func, file, line);
+    return;
   case kEBUSYErr:
-    throw std::runtime_error("kEBUSYErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEBUSYErr",
+        func, file, line);
+    return;
   case kENODEVErr:
-    throw std::runtime_error("kENODEVErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENODEVErr",
+        func, file, line);
+    return;
   case kEINVALErr:
-    throw std::runtime_error("kEINVALErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEINVALErr",
+        func, file, line);
+    return;
   case kENOTTYErr:
-    throw std::runtime_error("kENOTTYErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOTTYErr",
+        func, file, line);
+    return;
   case kEPIPEErr:
-    throw std::runtime_error("kEPIPEErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEPIPEErr",
+        func, file, line);
+    return;
   case kERANGEErr:
-    throw std::runtime_error("kERANGEErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kERANGEErr",
+        func, file, line);
+    return;
   case kEWOULDBLOCKErr:
-    throw std::runtime_error("kEWOULDBLOCKErr or kEDEADLKErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEWOULDBLOCKErr or kEDEADLKErr",
+                    func, file, line);
+    return;
   case kEALREADYErr:
-    throw std::runtime_error("kEALREADYErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEALREADYErr",
+        func, file, line);
+    return;
   case kENOTSOCKErr:
-    throw std::runtime_error("kENOTSOCKErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOTSOCKErr",
+        func, file, line);
+    return;
   case kEDESTADDRREQErr:
-    throw std::runtime_error("kEDESTADDRREQErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEDESTADDRREQErr",
+                    func, file, line);
+    return;
   case kEMSGSIZEErr:
-    throw std::runtime_error("kEMSGSIZEErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEMSGSIZEErr",
+        func, file, line);
+    return;
   case kEPROTOTYPEErr:
-    throw std::runtime_error("kEPROTOTYPEErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEPROTOTYPEErr",
+                    func, file, line);
+    return;
   case kENOPROTOOPTErr:
-    throw std::runtime_error("kENOPROTOOPTErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kENOPROTOOPTErr",
+                    func, file, line);
+    return;
   case kEPROTONOSUPPORTErr:
-    throw std::runtime_error("kEPROTONOSUPPORTErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEPROTONOSUPPORTErr",
+                    func, file, line);
+    return;
   case kESOCKTNOSUPPORTErr:
-    throw std::runtime_error("kESOCKTNOSUPPORTErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kESOCKTNOSUPPORTErr",
+                    func, file, line);
+    return;
   case kEOPNOTSUPPErr:
-    throw std::runtime_error("kEOPNOTSUPPErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEOPNOTSUPPErr",
+                    func, file, line);
+    return;
   case kEADDRINUSEErr:
-    throw std::runtime_error("kEADDRINUSEErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEADDRINUSEErr",
+                    func, file, line);
+    return;
   case kEADDRNOTAVAILErr:
-    throw std::runtime_error("kEADDRNOTAVAILErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEADDRNOTAVAILErr",
+                    func, file, line);
+    return;
   case kENETDOWNErr:
-    throw std::runtime_error("kENETDOWNErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENETDOWNErr",
+        func, file, line);
+    return;
   case kENETUNREACHErr:
-    throw std::runtime_error("kENETUNREACHErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kENETUNREACHErr",
+                    func, file, line);
+    return;
   case kENETRESETErr:
-    throw std::runtime_error("kENETRESETErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kENETRESETErr",
+                    func, file, line);
+    return;
   case kECONNABORTEDErr:
-    throw std::runtime_error("kECONNABORTEDErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kECONNABORTEDErr",
+                    func, file, line);
+    return;
   case kECONNRESETErr:
-    throw std::runtime_error("kECONNRESETErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kECONNRESETErr",
+                    func, file, line);
+    return;
   case kENOBUFSErr:
-    throw std::runtime_error("kENOBUFSErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOBUFSErr",
+        func, file, line);
+    return;
   case kEISCONNErr:
-    throw std::runtime_error("kEISCONNErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEISCONNErr",
+        func, file, line);
+    return;
   case kENOTCONNErr:
-    throw std::runtime_error("kENOTCONNErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOTCONNErr",
+        func, file, line);
+    return;
   case kESHUTDOWNErr:
-    throw std::runtime_error("kESHUTDOWNErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kESHUTDOWNErr",
+                    func, file, line);
+    return;
   case kETOOMANYREFSErr:
-    throw std::runtime_error("kETOOMANYREFSErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kETOOMANYREFSErr",
+                    func, file, line);
+    return;
   case kETIMEDOUTErr:
-    throw std::runtime_error("kETIMEDOUTErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kETIMEDOUTErr",
+                    func, file, line);
+    return;
   case kECONNREFUSEDErr:
-    throw std::runtime_error("kECONNREFUSEDErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kECONNREFUSEDErr",
+                    func, file, line);
+    return;
   case kEHOSTDOWNErr:
-    throw std::runtime_error("kEHOSTDOWNErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEHOSTDOWNErr",
+                    func, file, line);
+    return;
   case kEHOSTUNREACHErr:
-    throw std::runtime_error("kEHOSTUNREACHErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEHOSTUNREACHErr",
+                    func, file, line);
+    return;
   case kEPROTOErr:
-    throw std::runtime_error("kEPROTOErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEPROTOErr",
+        func, file, line);
+    return;
   case kETIMEErr:
-    throw std::runtime_error("kETIMEErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kETIMEErr",
+        func, file, line);
+    return;
   case kENOSRErr:
-    throw std::runtime_error("kENOSRErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOSRErr",
+        func, file, line);
+    return;
   case kEBADMSGErr:
-    throw std::runtime_error("kEBADMSGErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kEBADMSGErr",
+        func, file, line);
+    return;
   case kECANCELErr:
-    throw std::runtime_error("kECANCELErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kECANCELErr",
+        func, file, line);
+    return;
   case kENOSTRErr:
-    throw std::runtime_error("kENOSTRErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOSTRErr",
+        func, file, line);
+    return;
   case kENODATAErr:
-    throw std::runtime_error("kENODATAErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENODATAErr",
+        func, file, line);
+    return;
   case kEINPROGRESSErr:
-    throw std::runtime_error("kEINPROGRESSErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kEINPROGRESSErr",
+                    func, file, line);
+    return;
   case kESRCHErr:
-    throw std::runtime_error("kESRCHErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kESRCHErr",
+        func, file, line);
+    return;
   case kENOMSGErr:
-    throw std::runtime_error("kENOMSGErr");
+    mac_error_throw(
+        "Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: kENOMSGErr",
+        func, file, line);
+    return;
   case kOTClientNotInittedErr:
-    throw std::runtime_error("kOTClientNotInittedErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTClientNotInittedErr",
+                    func, file, line);
+    return;
   case kOTPortHasDiedErr:
-    throw std::runtime_error("kOTPortHasDiedErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTPortHasDiedErr",
+                    func, file, line);
+    return;
   case kOTPortWasEjectedErr:
-    throw std::runtime_error("kOTPortWasEjectedErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTPortWasEjectedErr",
+                    func, file, line);
+    return;
   case kOTBadConfigurationErr:
-    throw std::runtime_error("kOTBadConfigurationErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTBadConfigurationErr",
+                    func, file, line);
+    return;
   case kOTConfigurationChangedErr:
-    throw std::runtime_error("kOTConfigurationChangedErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTConfigurationChangedErr",
+                    func, file, line);
+    return;
   case kOTUserRequestedErr:
-    throw std::runtime_error("kOTUserRequestedErr");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTUserRequestedErr",
+                    func, file, line);
+    return;
   case kOTPortLostConnection:
-    throw std::runtime_error("kOTPortLostConnection");
+    mac_error_throw("Error:\n\t- Function:%s\n\t- Position:%s:%d\n\t- Error: "
+                    "kOTPortLostConnection",
+                    func, file, line);
+    return;
   }
 }

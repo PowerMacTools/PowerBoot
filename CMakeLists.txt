@@ -2,7 +2,6 @@
 project(PowerBoot)
 cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FILE(GLOB_RECURSE COMMON_SOURCES ./src/*.c ./src/*.cpp ./src/*.r)
 FILE(GLOB_RECURSE MAC_SOURCES ./mac/*.c ./mac/*.cpp ./mac/*.r)
@@ -49,10 +48,11 @@ IF(CMAKE_SYSTEM_NAME MATCHES Retro68)
 # for 68k
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-ffunction-sections -mcpu=68020 -O3 -Wall -Wextra -Wno-unused-parameter")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-gc-sections -Wl,--mac-segments -Wl,${CMAKE_CURRENT_SOURCE_DIR}/ssheven.segmap")
-  target_link_libraries(${PROJECT_NAME} libssh2 mbedtls mbedx509 mbedcrypto OpenTransportApp OpenTransport OpenTptInet retrocrt)
+  target_link_libraries(${PROJECT_NAME} libssh2 mbedtls mbedx509 mbedcrypto OpenTransport OpenTptInet OpenTransportApp retrocrt)
 ELSE()
 # for PPC
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-ffunction-sections -mcpu=601 -O3 -Wall -Wextra -Wno-unused-parameter")
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-gc-sections")
   target_link_libraries(${PROJECT_NAME} libssh2 mbedtls mbedx509 mbedcrypto OpenTransportAppPPC OpenTransportLib OpenTptInternetLib retrocrt ThreadsLib)
 ENDIF()
 else()
@@ -60,6 +60,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC libssh2 mbedtls)
 endif()
 
 # misc
+include_directories("./include")
 IF(CMAKE_SYSTEM_NAME MATCHES Retro)
 include_directories("./mac/unixnet2mac/include")
 target_compile_definitions(${PROJECT_NAME} PUBLIC "__RETRO__")
