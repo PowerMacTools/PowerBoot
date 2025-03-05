@@ -8,36 +8,19 @@
 #ifndef __INTERNAL_HPP
 #define __INTERNAL_HPP
 
-// On 68k, and only for me for some fucking reason...
-// These functions are in all caps.
-extern "C" {
-EXTERN_API(OSStatus)
-OTCONNECT(EndpointRef ref, TCall *sndCall, TCall *rcvCall);
-EXTERN_API(OSStatus)
-OTBIND(EndpointRef ref, TBind *reqAddr, /* can be NULL */
-       TBind *retAddr);                 /* can be NULL */
-EXTERN_API(OTByteCount)
-OTINITDNSADDRESS(DNSAddress *addr, char *str);
-EXTERN_API(OTConfigurationRef) OTCREATECONFIGURATION(const char *path);
-EXTERN_API(EndpointRef)
-OTOPENENDPOINT(OTConfigurationRef cfig, OTOpenFlags oflag, TEndpointInfo *info,
-               OSStatus *err);
 
-EXTERN_API(OSStatus) INITOPENTRANSPORT();
-}
 
 class Socket {
 
 public:
-  EndpointRef endpoint;
-  OTConfigurationRef cfg;
-  TEndpointInfo info;
+  TEndpoint *endpoint = NULL;
+  OTConfiguration *cfg = NULL;
+  TEndpointInfo info = {0, 0, 0, 0, 0, 0, 0, 0};
 
-  DNSAddress hostDNSAddress;
-  TCall *sndCall = NULL;
-  TCall *rcvCall = NULL;
+  DNSAddress hostDNSAddress = {0};
+  TCall sndCall = {0};
 
-  TBind *retAddr;
+  TBind *retAddr = NULL;
 
   ~Socket();
 };

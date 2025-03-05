@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <sys/types.h>
 
 #ifndef __UNIXNET2MAC__H
 #define __UNIXNET2MAC__H
@@ -59,7 +60,7 @@ struct sockaddr {
   char sa_data[];        /* Socket address */
 };
 
-uint16_t inet_addr(const char *str);
+unsigned long inet_addr(const char *str);
 int connect(int socket, const struct sockaddr *address, socklen_t address_len);
 int socket(int domain, int type, int protocol);
 
@@ -70,6 +71,9 @@ int socket(int domain, int type, int protocol);
 #define htons(x) x
 #define ntohl(x) x
 #define ntohs(x) x
+
+ssize_t recv(int __fd, void *__buf, size_t __n, int __flags);
+ssize_t send(int __fd, const void *__buf, size_t __n, int __flags);
 
 #ifdef __cplusplus
 }

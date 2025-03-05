@@ -46,11 +46,13 @@ endif()
 if(CMAKE_SYSTEM_NAME MATCHES Retro)
 IF(CMAKE_SYSTEM_NAME MATCHES Retro68)
 # for 68k
+  target_compile_definitions(${PROJECT_NAME} PUBLIC "__retro68__")
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-ffunction-sections -mcpu=68020 -O3 -Wall -Wextra -Wno-unused-parameter")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-gc-sections -Wl,--mac-segments -Wl,${CMAKE_CURRENT_SOURCE_DIR}/ssheven.segmap")
   target_link_libraries(${PROJECT_NAME} libssh2 mbedtls mbedx509 mbedcrypto OpenTransport OpenTptInet OpenTransportApp retrocrt)
 ELSE()
 # for PPC
+  target_compile_definitions(${PROJECT_NAME} PUBLIC "__retroppc__")
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-ffunction-sections -mcpu=601 -O3 -Wall -Wextra -Wno-unused-parameter")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-gc-sections")
   target_link_libraries(${PROJECT_NAME} libssh2 mbedtls mbedx509 mbedcrypto OpenTransportAppPPC OpenTransportLib OpenTptInternetLib retrocrt ThreadsLib)

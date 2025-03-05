@@ -1,33 +1,41 @@
 #include "../include/unixnet2mac.h"
+#include "MacTypes.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
 #include "internal.hpp"
 #include <cstddef>
-#include <stdexcept>
 // commented out to shut clangd up
 // #include <sys/socket.h>
 
 int socket(int domain, int type, int protocol) {
-  ThrowOSErr(INITOPENTRANSPORT());
-  OSStatus stat;
+  OSErr err = noErr;
+  if (err = InitOpenTransport(); err != noErr) {
+    mac_error_throw("Error initializing OpenTransport: %d\n", err);
+  }
 
   Socket *skt = new Socket();
 
   switch (type) {
   case SOCK_STREAM: // tcp
-    skt->cfg = OTCREATECONFIGURATION(kTCPName);
+    skt->cfg = OTCreateConfiguration(kTCPName);
     break;
   case SOCK_DGRAM: // udp
-    skt->cfg = OTCREATECONFIGURATION(kUDPName);
+    skt->cfg = OTCreateConfiguration(kUDPName);
     break;
   default:
-    mac_error_throw("Unknown socket type passed");
+    mac_error_throw("Unknown socket type \"%d\" passed", type);
   }
 
-  skt->endpoint = OTOPENENDPOINT(skt->cfg, 0, &skt->info, &stat);
+  // OTMemzero(&skt->info, sizeof(skt->info));
 
-  ThrowOSErr(stat);
+  OSStatus OTEndpointStatus = 0;
+  skt->endpoint = OTOpenEndpoint(skt->cfg, 0, nil, &OTEndpointStatus);
+  ThrowOSErr(OTEndpointStatus);
 
+  OTSetSynchronous(skt->endpoint);
+  OTSetBlocking(skt->endpoint);
+  OTUseSyncIdleEvents(skt->endpoint, false);
+  
   size_t socketId = openSockets.size();
   OPEN_SOCKET_INSERT(socketId, skt);
   return socketId;

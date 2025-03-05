@@ -12,5 +12,5 @@ function make_for() {
     return $status
 }
 
-make_for "68k" "retro68"
-# make_for "PowerPC" "retroppc"
+make_for "68k" "retro68" &&
+make_for "PowerPC" "retroppc"

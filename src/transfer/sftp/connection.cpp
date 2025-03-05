@@ -77,7 +77,7 @@ void SFTP::connect(ConnectionOptions options) {
            LIBSSH2_ERROR_EAGAIN)
       ;
     if (rc) {
-      error_throw("Failure establishing SSH session: {}", rc);
+      error_throw("Failure establishing SSH session: %s", error_msg()->c_str());
     }
 
     fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);

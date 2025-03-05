@@ -151,6 +151,10 @@ public:
 
   void unlink(std::string filename) override;
 
+  static ssize_t recv_callback(libssh2_socket_t sockfd, void *buffer,
+                               size_t length, int flags, void **abstract);
+  static ssize_t send_callback(libssh2_socket_t sockfd, const void *buffer,
+                               size_t length, int flags, void **abstract);
   friend class SFTPAttributes;
 };
 
