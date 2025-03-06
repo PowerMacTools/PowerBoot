@@ -17,13 +17,20 @@ ThreadID main_thread_id;
 void *main_func(void *arg);
 
 int main(int argc, char *argv[]) {
-  // // On Classic Mac we want to start the main function on a new thread.
-  // OSErr err = NewThread(kCooperativeThread, main_func, NULL, 100000,
-  //                       kCreateIfNeeded, NULL, &main_thread_id);
+  // On Classic Mac we want to start the main function on a new thread.
 
-  // if (err < 0) {
-  //   printf("Failed to create main thread: %d", err);
-  // }
+  /*
+#ifdef __RETRO__
+  OSErr err = NewThread(kCooperativeThread, main_func, NULL, 100000,
+                        kCreateIfNeeded, NULL, &main_thread_id);
+
+  if (err < 0) {
+    printf("Failed to create main thread: %d", err);
+  }
+#else
+  main_func(NULL);
+#endif*/
+
   main_func(NULL);
 }
 

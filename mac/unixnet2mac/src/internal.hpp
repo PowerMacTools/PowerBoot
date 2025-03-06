@@ -8,14 +8,13 @@
 #ifndef __INTERNAL_HPP
 #define __INTERNAL_HPP
 
-
-
 class Socket {
 
 public:
   TEndpoint *endpoint = NULL;
   OTConfiguration *cfg = NULL;
   TEndpointInfo info = {0, 0, 0, 0, 0, 0, 0, 0};
+  InetSvcRef inetsvc = NULL;
 
   DNSAddress hostDNSAddress = {0};
   TCall sndCall = {0};
