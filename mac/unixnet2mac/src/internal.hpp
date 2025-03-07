@@ -33,4 +33,5 @@ void __throw_os_err(const char *file, int line, const char *func, OSErr err);
   openSockets.insert(std::pair<size_t, Socket *>(x, y))
 
 void mac_error_throw(const char *format, ...);
+
 #endif

@@ -1,5 +1,5 @@
-#include "error.hpp"
-#include "console/Console.hpp"
+#include "Threads.h"
+#include "console.hpp"
 #include <string>
 
 std::runtime_error formatted_error(const char *format, ...) {
@@ -26,11 +26,8 @@ void error_throw(const char *format, ...) {
   va_end(arglist);
 
   printf("%s\n", buf);
-#ifdef __RETRO__
-  if (!retro::Console::currentInstance) {
-    retro::InitConsole();
-  }
-  retro::Console::currentInstance->ReadLine();
-#endif
-  exit(0);
+
+  void *what;
+  DisposeThread(main_thread_id, what, false);
+  YieldToAnyThread();
 }

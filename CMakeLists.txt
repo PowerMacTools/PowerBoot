@@ -8,7 +8,7 @@ FILE(GLOB_RECURSE MAC_SOURCES ./mac/*.c ./mac/*.cpp ./mac/*.r)
 
 # binary creation
 if(CMAKE_SYSTEM_NAME MATCHES Retro)
-add_application(${PROJECT_NAME} ${COMMON_SOURCES} ${MAC_SOURCES} CONSOLE)
+add_application(${PROJECT_NAME} ${COMMON_SOURCES} ${MAC_SOURCES})
 else()
 add_executable(${PROJECT_NAME} ${COMMON_SOURCES})
 endif()

@@ -14,18 +14,31 @@ void notifier(void *, OTEventCode, OTResult, void *);
 int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
   sockaddr_in *dafaq = (sockaddr_in *)address;
   OSStatus err;
+
   auto s = openSockets.at(socket);
+  YieldToAnyThread();
+
   ThrowOSErr(OTBind(s->endpoint, nil, nil));
+  YieldToAnyThread();
+
   InetAddress addr;
+
   OTInitInetAddress(&addr, dafaq->sin_addr.s_addr, dafaq->sin_port);
+  YieldToAnyThread();
+
   OTMemzero(&s->sndCall, sizeof(TCall));
   s->sndCall.addr.buf = (UInt8 *)&addr;
   s->sndCall.addr.len = sizeof(addr);
 
+  OTSetNonBlocking(s->endpoint);
   OTSetAsynchronous(s->endpoint);
   OTInstallNotifier(s->endpoint, notifier, s);
+  YieldToAnyThread();
+
+  finished = false;
 
   auto OTConnectStatus = OTConnect(s->endpoint, &s->sndCall, nil);
+  YieldToAnyThread();
   if (OTConnectStatus != kOTNoDataErr) {
     ThrowOSErr(OTConnectStatus);
   }
@@ -33,10 +46,14 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
   while (!finished) {
     YieldToAnyThread();
   }
+  mac_error_throw("Finished");
+
   return 0;
 };
 
 void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
+  printf("Notifier hit\n");
+
   finished = true;
   ThrowOSErr(code);
 
@@ -132,6 +149,8 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     mac_error_throw("Unhandled OTLook: T_LKUPNAMERESULT\n");
     break;
   }
+
+  YieldToAnyThread();
 }
 
 /*if (OTConnectStatus != noErr) {

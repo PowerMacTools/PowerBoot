@@ -1,5 +1,5 @@
 #include "sftp.hpp"
-#include "../../utils/error.hpp"
+#include "../../console/console.hpp"
 #include <cstdio>
 #include <libssh2.h>
 #include <libssh2_sftp.h>

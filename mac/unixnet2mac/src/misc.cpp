@@ -1,11 +1,13 @@
 #include "../include/unixnet2mac.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
-#include "console/Console.hpp"
+#include "Threads.h"
 #include "internal.hpp"
 #include <cstdarg>
 #include <cstdlib>
 #include <ctype.h>
+
+extern ThreadID main_thread_id;
 
 unsigned long inet_addr(const char *cp) {
   unsigned long val;
@@ -78,9 +80,8 @@ void mac_error_throw(const char *format, ...) {
   va_end(arglist);
 
   printf("%s\n", buf);
-  if (!retro::Console::currentInstance) {
-    retro::InitConsole();
-  }
-  retro::Console::currentInstance->ReadLine();
-  exit(0);
+
+  void *what;
+  DisposeThread(main_thread_id, what, false);
+  YieldToAnyThread();
 }
