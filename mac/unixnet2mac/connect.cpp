@@ -1,10 +1,10 @@
-#include "../include/unixnet2mac.h"
 #include "MacErrors.h"
 #include "MacTypes.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
 #include "Threads.h"
 #include "internal.hpp"
+#include "unixnet2mac.h"
 #include <cstdlib>
 
 bool finished = false;
@@ -46,6 +46,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
   while (!finished) {
     YieldToAnyThread();
   }
+
   mac_error_throw("Finished");
 
   return 0;

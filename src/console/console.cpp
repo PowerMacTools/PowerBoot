@@ -6,6 +6,7 @@
 #include "MacWindows.h"
 #include "Memory.h"
 #include "Menus.h"
+#include "Processes.h"
 #include "QuickDraw.h"
 #include "Quickdraw.h"
 #include "QuickdrawText.h"
@@ -49,6 +50,11 @@ void console_setup(void) {
   initial_window_bounds.bottom = initial_window_bounds.top + cell_height * 16;
   initial_window_bounds.right = initial_window_bounds.left + cell_width * 44;
 
+  Rect qdR = qd.screenBits.bounds;
+  qdR.top += 40;
+
+  InsetRect(&qdR, 5, 5);
+
   ConstStr255Param title = (ConstStr255Param) "\pPowerBoot 1.0.0";
 
   wStorage = malloc(1024 * 2);
@@ -75,11 +81,12 @@ void MacMain() {
   InitFonts();
   InitWindows();
   InitMenus();
-  InitCursor();
 
   DrawMenuBar();
 
   console_setup();
+
+  InitCursor();
 
   BeginUpdate(window);
   ScreenDraw(&(window->portRect));
@@ -91,10 +98,12 @@ void MacMain() {
   EventRecord event;
   WindowPtr eventWin;
   ThreadState mainThreadState;
+  long data;
 
   do {
-    while (!WaitNextEvent(everyEvent, &event, sleep_time, NULL)) {
-      YieldToAnyThread();
+    SystemTask();
+    while (!GetNextEvent(everyEvent, &event)) {
+      SystemTask();
       BeginUpdate(window);
       ScreenDraw(&(window->portRect));
       EndUpdate(window);
@@ -110,27 +119,23 @@ void MacMain() {
       EndUpdate(eventWin);
       break;
     case activateEvt:
-      InvalRect((&eventWin->portRect));
+      GetWRefCon(window);
+      printf("%ld\n", event.message & 0xFFFF);
       break;
     case mouseDown:
       switch (FindWindow(event.where, &eventWin)) {
       case inDrag:
         DragWindow(eventWin, event.where, &(*(GetGrayRgn()))->rgnBBox);
         break;
-
-      case inGrow:
-        GrowWindow(eventWin, event.where, NULL);
-        break;
-
-      case inGoAway:
-        if (TrackGoAway(eventWin, event.where)) {
-          exit_loop = true;
-        }
-        break;
-
-      case inSysWindow:
-        SystemClick(&event, eventWin);
-        break;
+      case inGrow: {
+        long growResult =
+            GrowWindow(eventWin, event.where, &(*(GetGrayRgn()))->rgnBBox);
+        SizeWindow(eventWin, growResult & 0xFFFF, growResult >> 16, false);
+      } break;
+      case inGoAway: {
+        if (TrackGoAway(eventWin, event.where))
+          exit(0);
+      } break;
       }
 
     case osEvt:

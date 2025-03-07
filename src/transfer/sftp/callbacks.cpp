@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #ifdef __RETRO__
-#include "unixnet2mac.h"
+#include <unixnet2mac.h>
 #endif
 
 ssize_t SFTP::recv_callback(libssh2_socket_t sockfd, void *buffer,

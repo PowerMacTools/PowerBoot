@@ -64,6 +64,6 @@ endif()
 # misc
 include_directories("./include")
 IF(CMAKE_SYSTEM_NAME MATCHES Retro)
-include_directories("./mac/unixnet2mac/include")
+include_directories("./mac/include")
 target_compile_definitions(${PROJECT_NAME} PUBLIC "__RETRO__")
 endif()
