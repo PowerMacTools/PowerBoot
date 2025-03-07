@@ -75,8 +75,12 @@ void SFTP::connect(ConnectionOptions options) {
     printf("[sftppath]\t%s\n", options.sftppath.c_str());
 
     while ((rc = libssh2_session_handshake(session, sock)) ==
-           LIBSSH2_ERROR_EAGAIN)
-      ;
+           LIBSSH2_ERROR_EAGAIN) {
+#ifdef __RETRO__
+      YieldToAnyThread();
+#endif
+    }
+
     if (rc) {
       error_throw("Failure establishing SSH session: %s", error_msg()->c_str());
     }

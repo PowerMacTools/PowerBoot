@@ -42,10 +42,8 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
     YieldToAnyThread();
   }
 
-  printf("%ld\n", connect_thread_id);
   DisposeThread(connect_thread_id, NULL, false);
   YieldToAnyThread();
-  printf("success\n");
 
   return 0;
 };
@@ -92,16 +90,12 @@ void *connect_thread(void *arg) {
     ThrowOSErr(OTConnectStatus);
   }
 
-  printf("Connected\n");
-  // void *what;
-  // DisposeThread(main_thread_id, what, false);
   YieldToAnyThread();
 
   return 0;
 }
 
 void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
-  printf("Notifier hit\n");
   YieldToAnyThread();
 
   finished = true;
@@ -113,14 +107,11 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   TDiscon *discon;
   char *buf;
 
-  printf("Code: %ld\n", code);
-
   switch (code) {
   case T_LISTEN:
     mac_error_throw("Unhandled OTLook: T_LISTEN\n");
     break;
   case T_CONNECT:
-    printf("Connected");
     // call = (TCall *)malloc(sizeof(TCall));
     // buf = (char *)malloc(255);
     // OTRcvConnect(endpoint, call);
