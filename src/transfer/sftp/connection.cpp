@@ -1,5 +1,6 @@
 
 #include "../../console/console.hpp"
+#include "Threads.h"
 #include "sftp.hpp"
 #include <cstdio>
 #include <libssh2.h>

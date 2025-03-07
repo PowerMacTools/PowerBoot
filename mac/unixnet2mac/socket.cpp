@@ -38,8 +38,6 @@ int socket(int domain, int type, int protocol) {
   ThrowOSErr(OTEndpointStatus);
   YieldToAnyThread();
 
-  OTSetSynchronous(skt->endpoint);
-  OTSetBlocking(skt->endpoint);
   OTUseSyncIdleEvents(skt->endpoint, false);
   YieldToAnyThread();
 

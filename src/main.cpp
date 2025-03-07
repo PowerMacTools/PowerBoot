@@ -15,6 +15,7 @@
 #include "Memory.h"
 #include "Threads.h"
 ThreadID main_thread_id;
+void MacMain();
 #else
 #define YieldToAnyThread()
 #endif
@@ -46,7 +47,6 @@ int main(int argc, char *argv[]) {
 
 void *main_func(void *arg) {
   printf("Starting PowerBoot...\n");
-
   YieldToAnyThread();
   try {
     TransferProtocol *sftp = new SFTP();

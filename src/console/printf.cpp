@@ -14,6 +14,9 @@ extern "C" ssize_t _consolewrite(int fd, const void *buf, size_t count) {
   // BeginUpdate(window);
   // ScreenDraw(window->visRgn);
   // EndUpdate(window);
+
+  YieldToAnyThread();
+
   return str.size();
 }
 

@@ -32,7 +32,7 @@ void console_setup(void) {
   ForeColor(whiteColor);
 
   TextFont(kFontIDMonaco);
-  TextSize(12);
+  TextSize(10);
   TextFace(normal);
 
   FontInfo fi = {0};
@@ -120,7 +120,6 @@ void MacMain() {
       break;
     case activateEvt:
       GetWRefCon(window);
-      printf("%ld\n", event.message & 0xFFFF);
       break;
     case mouseDown:
       switch (FindWindow(event.where, &eventWin)) {
@@ -159,7 +158,7 @@ void ScreenDraw(Rect *rec) {
   short save_font_bg = qd.thePort->bkColor;
 
   TextFont(kFontIDMonaco);
-  TextSize(12);
+  TextSize(10);
   TextFace(normal);
   BackColor(blackColor);
   ForeColor(whiteColor);
@@ -171,23 +170,23 @@ void ScreenDraw(Rect *rec) {
 
   EraseRect(rec);
 
-  short y = rec->top + 12;
+  short y = rec->top + 10;
   ThreadBeginCritical();
   for (auto line = lineBuffer.begin(); line != lineBuffer.end(); line++) {
-    short x = rec->left + 12;
+    short x = rec->left + 10;
     for (int ch = 0; ch < line->size(); ch++) {
       char c = line->at(ch);
       switch (c) {
       case '\n':
-        x = rec->left + 12;
-        y += 12;
+        x = rec->left + 8;
+        y += 10;
         break;
       default:
         MoveTo(x, y);
         DrawChar(c);
         break;
       }
-      x += 12;
+      x += 10;
     }
   }
   ThreadEndCritical();

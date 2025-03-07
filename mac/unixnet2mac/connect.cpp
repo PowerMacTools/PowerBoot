@@ -1,39 +1,88 @@
 #include "MacErrors.h"
+#include "MacMemory.h"
 #include "MacTypes.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
 #include "Threads.h"
 #include "internal.hpp"
 #include "unixnet2mac.h"
+#include <cstdio>
 #include <cstdlib>
 
 bool finished = false;
 
 void notifier(void *, OTEventCode, OTResult, void *);
+void *connect_thread(void *arg);
+
+typedef struct {
+  int socket;
+  const struct sockaddr *address;
+  socklen_t address_len;
+} connectThreadParams;
 
 int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
-  sockaddr_in *dafaq = (sockaddr_in *)address;
+  ThreadID connect_thread_id = 0;
+
+  connectThreadParams params = connectThreadParams{
+      .socket = socket,
+      .address = address,
+      .address_len = address_len,
+  };
+
+  MaxApplZone();
+
+  for (int i = 0; i < 10; i++) {
+    MoreMasters();
+  }
+
+  OSErr err = NewThread(kCooperativeThread, connect_thread, &params, 100000,
+                        kCreateIfNeeded, NULL, &connect_thread_id);
+
+  while (!finished) {
+    YieldToAnyThread();
+  }
+
+  printf("%ld\n", connect_thread_id);
+  DisposeThread(connect_thread_id, NULL, false);
+  YieldToAnyThread();
+  printf("success\n");
+
+  return 0;
+};
+
+void *connect_thread(void *arg) {
+  auto params = (connectThreadParams *)arg;
+
+  int socket = params->socket;
+  sockaddr_in *address = (sockaddr_in *)params->address;
+
+  socklen_t address_len = params->address_len;
+
   OSStatus err;
+  DNSAddress hostDNSAddress;
 
   auto s = openSockets.at(socket);
   YieldToAnyThread();
 
-  ThrowOSErr(OTBind(s->endpoint, nil, nil));
-  YieldToAnyThread();
+  ThrowOSErr(OTSetBlocking(s->endpoint));
+  ThrowOSErr(OTSetSynchronous(s->endpoint));
 
+  ThrowOSErr(OTBind(s->endpoint, nil, nil));
+
+  ThrowOSErr(OTSetNonBlocking(s->endpoint));
+  ThrowOSErr(OTSetAsynchronous(s->endpoint));
+
+  ThrowOSErr(OTInstallNotifier(s->endpoint, notifier, s));
+
+  YieldToAnyThread();
   InetAddress addr;
 
-  OTInitInetAddress(&addr, dafaq->sin_addr.s_addr, dafaq->sin_port);
+  OTInitInetAddress(&addr, address->sin_port, address->sin_addr.s_addr);
   YieldToAnyThread();
 
   OTMemzero(&s->sndCall, sizeof(TCall));
   s->sndCall.addr.buf = (UInt8 *)&addr;
   s->sndCall.addr.len = sizeof(addr);
-
-  OTSetNonBlocking(s->endpoint);
-  OTSetAsynchronous(s->endpoint);
-  OTInstallNotifier(s->endpoint, notifier, s);
-  YieldToAnyThread();
 
   finished = false;
 
@@ -43,27 +92,41 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
     ThrowOSErr(OTConnectStatus);
   }
 
-  while (!finished) {
-    YieldToAnyThread();
-  }
-
-  mac_error_throw("Finished");
+  printf("Connected\n");
+  // void *what;
+  // DisposeThread(main_thread_id, what, false);
+  YieldToAnyThread();
 
   return 0;
-};
+}
 
 void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   printf("Notifier hit\n");
+  YieldToAnyThread();
 
   finished = true;
   ThrowOSErr(code);
+
+  EndpointRef endpoint = (EndpointRef)cookie;
+
+  TCall *call;
+  TDiscon *discon;
+  char *buf;
+
+  printf("Code: %ld\n", code);
 
   switch (code) {
   case T_LISTEN:
     mac_error_throw("Unhandled OTLook: T_LISTEN\n");
     break;
   case T_CONNECT:
-    mac_error_throw("Unhandled OTLook: T_CONNECT\n");
+    printf("Connected");
+    // call = (TCall *)malloc(sizeof(TCall));
+    // buf = (char *)malloc(255);
+    // OTRcvConnect(endpoint, call);
+    // OTInetHostToString((InetHost)call->addr.buf, buf);
+    // printf("Connected to %s\n", buf);
+    YieldToAnyThread();
     break;
   case T_DATA:
     mac_error_throw("Unhandled OTLook: T_DATA\n");
@@ -72,7 +135,9 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     mac_error_throw("Unhandled OTLook: T_EXDATA\n");
     break;
   case T_DISCONNECT:
-    mac_error_throw("Unhandled OTLook: T_DISCONNECT\n");
+    discon = (TDiscon *)malloc(sizeof(TDiscon));
+    OTRcvDisconnect(endpoint, discon);
+    mac_error_throw("Disconnected: %s\n", discon->reason);
     break;
   case T_ERROR:
     mac_error_throw("Unhandled OTLook: T_ERROR\n");

@@ -2,6 +2,7 @@
 #include "MacTypes.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
+#include "Threads.h"
 #include <cstdio>
 #include <unordered_map>
 
@@ -33,5 +34,7 @@ void __throw_os_err(const char *file, int line, const char *func, OSErr err);
   openSockets.insert(std::pair<size_t, Socket *>(x, y))
 
 void mac_error_throw(const char *format, ...);
+
+extern ThreadID main_thread_id;
 
 #endif

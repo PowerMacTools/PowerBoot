@@ -1,6 +1,6 @@
 CompileFlags:
   Add:
-    - -I./mac/unixnet2mac/include/
+    - -I./mac/include/
     - -I./include/
     - -I/opt/Retro68/toolchain/universal/CIncludes/
     - -I/opt/Retro68/toolchain/universal/RIncludes/

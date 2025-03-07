@@ -7,8 +7,6 @@
 #include <cstdlib>
 #include <ctype.h>
 
-extern ThreadID main_thread_id;
-
 unsigned long inet_addr(const char *cp) {
   unsigned long val;
   int base, n;
