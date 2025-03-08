@@ -10,6 +10,7 @@
 #include <libssh2_sftp.h>
 
 #ifdef __RETRO__
+#include "Threads.h"
 #include <unixnet2mac.h>
 #else
 #include <arpa/inet.h>
@@ -30,6 +31,15 @@
   if (rc < 0) {                                                                \
     error_throw("[" funcname "] %s", th->error_msg(rc)->c_str());              \
   }
+
+void *read_thread(void *arg);
+
+#ifdef __RETRO__
+extern ThreadID read_thread_id;
+#endif
+
+enum class ReadThreadCommand { Wait, Read, Exit };
+enum class ReadThreadState { Uninitialized, Open, Cleanup, Done };
 
 class SFTP;
 
@@ -112,6 +122,9 @@ private:
   int rc;
   LIBSSH2_SFTP *sftp_session;
   LIBSSH2_SFTP_HANDLE *sftp_handle;
+  LIBSSH2_CHANNEL *channel;
+  char *recv_buffer;
+
   char *userauthlist;
 
   libssh2_struct_stat_size total = 0;
@@ -120,6 +133,9 @@ private:
   struct sockaddr_in sin;
 
 public:
+  ReadThreadCommand read_thread_command = ReadThreadCommand::Wait;
+  ReadThreadState read_thread_state = ReadThreadState::Uninitialized;
+
   LIBSSH2_SESSION *session = NULL;
 
   SFTP();
@@ -128,6 +144,7 @@ public:
   std::optional<std::string> error_msg();
   std::optional<std::string> error_msg(int err);
   int wait();
+  void *read_thread(ConnectionOptions options);
 
   void connect(ConnectionOptions options) override;
 
@@ -156,6 +173,14 @@ public:
   static ssize_t send_callback(libssh2_socket_t sockfd, const void *buffer,
                                size_t length, int flags, void **abstract);
   friend class SFTPAttributes;
+};
+
+class ReadThreadArgs {
+public:
+  ConnectionOptions options;
+  SFTP *sftp;
+  ReadThreadArgs(ConnectionOptions options, SFTP *sftp)
+      : options(options), sftp(sftp) {};
 };
 
 #endif

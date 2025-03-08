@@ -1,3 +1,5 @@
+#ifdef __RETRO__
+
 #include "console.hpp"
 #include "Events.h"
 #include "Fonts.h"
@@ -13,7 +15,14 @@
 #include "TextEdit.h"
 #include "Threads.h"
 #include "Windows.h"
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <iterator>
+#include <optional>
+#include <stdlib.h>
 #include <string>
+#include <vector>
 
 WindowPtr window = NULL;
 void *wStorage;
@@ -158,7 +167,7 @@ void ScreenDraw(Rect *rec) {
   short save_font_bg = qd.thePort->bkColor;
 
   TextFont(kFontIDMonaco);
-  TextSize(10);
+  TextSize(9);
   TextFace(normal);
   BackColor(blackColor);
   ForeColor(whiteColor);
@@ -170,24 +179,61 @@ void ScreenDraw(Rect *rec) {
 
   EraseRect(rec);
 
-  short y = rec->top + 10;
+  short y = rec->top + 9;
+  std::optional<std::vector<std::string>::iterator> lastLine = {};
   ThreadBeginCritical();
+  bool makingColor = false;
+  std::string colorCodes = std::string();
   for (auto line = lineBuffer.begin(); line != lineBuffer.end(); line++) {
-    short x = rec->left + 10;
+    short x = rec->left + 9;
     for (int ch = 0; ch < line->size(); ch++) {
       char c = line->at(ch);
       switch (c) {
-      case '\n':
-        x = rec->left + 8;
-        y += 10;
+      case '\e':
+        makingColor = true;
+        colorCodes.erase(colorCodes.begin());
         break;
+      case '\n':
+        x = rec->left + 9;
+        y += 12;
+        lastLine = line;
+        break;
+      case '\t':
+        x += 16;
+        x = (x + 8) & (x - 7);
+        break;
+      case '\r':
+        x = rec->left + 9;
+
+        // if (lastLine.has_value()) {
+        //   lineBuffer.erase(lastLine.value(), lineBuffer.end());
+        // } else {
+        //   lineBuffer.erase(lineBuffer.begin(), lineBuffer.end());
+        // }
+        break;
+      case 'm':
+        if (makingColor) {
+          makingColor = false;
+          printf("%s\n", colorCodes.c_str());
+          handleColorCode(atoi(colorCodes.c_str()));
+          break;
+        }
+        // intentionally don't break here because if we're not in color mode
+        // we wanna do default behavior.
       default:
-        MoveTo(x, y);
-        DrawChar(c);
+        if (makingColor) {
+          if (isdigit(c)) {
+            colorCodes.push_back(c);
+          }
+        } else {
+          MoveTo(x, y);
+          DrawChar(c);
+        }
         break;
       }
-      x += 10;
+      x += CharWidth(ch) + 9;
     }
+    lastLine = {};
   }
   ThreadEndCritical();
 
@@ -212,3 +258,58 @@ void ScreenDraw(Rect *rec) {
   DrawGrowIcon(window);
   window->clipRgn = old;
 }
+
+void handleColorCode(int code) {
+  switch (code) {
+  case 30:
+    ForeColor(blackColor);
+    break;
+  case 31:
+    ForeColor(redColor);
+    break;
+  case 32:
+    ForeColor(greenColor);
+    break;
+  case 33:
+    ForeColor(yellowColor);
+    break;
+  case 34:
+    ForeColor(blueColor);
+    break;
+  case 35:
+    ForeColor(magentaColor);
+    break;
+  case 36:
+    ForeColor(cyanColor);
+    break;
+  case 37:
+    ForeColor(whiteColor);
+    break;
+  case 40:
+    BackColor(blackColor);
+    break;
+  case 41:
+    BackColor(redColor);
+    break;
+  case 42:
+    BackColor(greenColor);
+    break;
+  case 43:
+    BackColor(yellowColor);
+    break;
+  case 44:
+    BackColor(blueColor);
+    break;
+  case 45:
+    BackColor(magentaColor);
+    break;
+  case 46:
+    BackColor(cyanColor);
+    break;
+  case 47:
+    BackColor(whiteColor);
+    break;
+  }
+}
+
+#endif

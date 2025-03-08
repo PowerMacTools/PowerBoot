@@ -8,8 +8,6 @@
 #include <stdexcept>
 #include <stdio.h>
 
-#define __RETRO__
-
 #ifdef __RETRO__
 #include "MacTypes.h"
 #include "Memory.h"

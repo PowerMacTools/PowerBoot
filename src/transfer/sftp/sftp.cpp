@@ -19,11 +19,13 @@ SFTP::SFTP() {
   }
 
 #ifdef __RETRO__
+  libssh2_session_callback_set(session, LIBSSH2_CALLBACK_SEND,
+                               (void *)SFTP::send_callback);
   libssh2_session_callback_set(session, LIBSSH2_CALLBACK_RECV,
                                (void *)SFTP::recv_callback);
+  libssh2_session_callback_set(session, LIBSSH2_CALLBACK_DISCONNECT,
+                               (void *)SFTP::recv_callback);
 
-  libssh2_session_callback_set(session, LIBSSH2_CALLBACK_RECV,
-                               (void *)SFTP::send_callback);
 #endif
   /* Since we have set non-blocking, tell libssh2 we are non-blocking */
   libssh2_session_set_blocking(session, 0);

@@ -78,6 +78,12 @@ void *connect_thread(void *arg) {
   OTInitInetAddress(&addr, address->sin_port, address->sin_addr.s_addr);
   YieldToAnyThread();
 
+  char *ip = (char *)malloc(32);
+  snprintf(ip, 32, "%ld.%ld.%ld.%ld", (addr.fHost & 0xFF000000) >> 24,
+           (addr.fHost & 0x00FF0000) >> 16, (addr.fHost & 0x0000FF00) >> 8,
+           addr.fHost & 0x000000FF);
+  YieldToAnyThread();
+
   OTMemzero(&s->sndCall, sizeof(TCall));
   s->sndCall.addr.buf = (UInt8 *)&addr;
   s->sndCall.addr.len = sizeof(addr);
@@ -99,9 +105,10 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   YieldToAnyThread();
 
   finished = true;
-  ThrowOSErr(code);
+  ThrowOSErr(res);
 
-  EndpointRef endpoint = (EndpointRef)cookie;
+  EndpointRef endpoint = (EndpointRef)usrPtr;
+  TCall *upperCall = (TCall *)cookie;
 
   TCall *call;
   TDiscon *discon;
@@ -112,12 +119,7 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     mac_error_throw("Unhandled OTLook: T_LISTEN\n");
     break;
   case T_CONNECT:
-    // call = (TCall *)malloc(sizeof(TCall));
-    // buf = (char *)malloc(255);
-    // OTRcvConnect(endpoint, call);
-    // OTInetHostToString((InetHost)call->addr.buf, buf);
-    // printf("Connected to %s\n", buf);
-    YieldToAnyThread();
+    // printf("Connected to %s\n", upperCall->addr.buf);
     break;
   case T_DATA:
     mac_error_throw("Unhandled OTLook: T_DATA\n");
@@ -204,6 +206,21 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     break;
   case T_LKUPNAMERESULT:
     mac_error_throw("Unhandled OTLook: T_LKUPNAMERESULT\n");
+    break;
+  case kOTProviderIsDisconnected:
+    mac_error_throw("Unhandled OTLook: kOTProviderIsDisconnected\n");
+    break;
+  case kOTSyncIdleEvent:
+    mac_error_throw("Unhandled OTLook: kOTSyncIdleEvent\n");
+    break;
+  case kOTProviderIsReconnected:
+    mac_error_throw("Unhandled OTLook: kOTProviderIsReconnected\n");
+    break;
+  case kOTProviderWillClose:
+    mac_error_throw("Unhandled OTLook: kOTProviderWillClose\n");
+    break;
+  case kOTProviderIsClosed:
+    mac_error_throw("Unhandled OTLook: kOTProviderIsClosed\n");
     break;
   }
 

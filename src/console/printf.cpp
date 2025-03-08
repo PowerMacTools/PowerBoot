@@ -1,3 +1,4 @@
+#ifdef __RETRO__
 #include "Threads.h"
 #include "Windows.h"
 #include "console.hpp"
@@ -9,11 +10,10 @@ extern "C" ssize_t _consolewrite(int fd, const void *buf, size_t count) {
 
   ThreadBeginCritical();
   lineBuffer.push_back(str);
+  if (lineBuffer.size() >= 40) {
+    lineBuffer.erase(lineBuffer.begin(), lineBuffer.begin() + 1);
+  }
   ThreadEndCritical();
-
-  // BeginUpdate(window);
-  // ScreenDraw(window->visRgn);
-  // EndUpdate(window);
 
   YieldToAnyThread();
 
@@ -21,3 +21,4 @@ extern "C" ssize_t _consolewrite(int fd, const void *buf, size_t count) {
 }
 
 extern "C" ssize_t _consoleread(int fd, void *buf, size_t count) { return 0; }
+#endif
