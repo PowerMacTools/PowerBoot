@@ -6,7 +6,16 @@
 
 extern "C" ssize_t _consolewrite(int fd, const void *buf, size_t count) {
   const char *b = (const char *)buf;
-  auto str = std::string(b, b + count);
+
+  // We manually construct the string so that if we run into a
+  // buffer overrun error the entire system at least doesn't hang.
+  auto str = std::string();
+  for (size_t i = 0; i < count; i++) {
+    str.push_back(b[i]);
+    YieldToAnyThread();
+  };
+  // yes it's slower but this is for a debug window that the user might not even
+  // have open so it's fine
 
   ThreadBeginCritical();
   lineBuffer.push_back(str);
