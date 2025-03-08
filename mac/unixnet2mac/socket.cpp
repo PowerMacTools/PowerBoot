@@ -42,6 +42,7 @@ int socket(int domain, int type, int protocol) {
   YieldToAnyThread();
 
   size_t socketId = openSockets.size();
+  skt->id = socketId;
   OPEN_SOCKET_INSERT(socketId, skt);
 
   YieldToAnyThread();

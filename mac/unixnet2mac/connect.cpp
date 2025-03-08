@@ -6,6 +6,7 @@
 #include "Threads.h"
 #include "internal.hpp"
 #include "unixnet2mac.h"
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 
@@ -107,12 +108,45 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   finished = true;
   ThrowOSErr(res);
 
-  EndpointRef endpoint = (EndpointRef)usrPtr;
+  Socket *s = ((Socket *)usrPtr);
+  EndpointRef endpoint = s->endpoint;
+
   TCall *upperCall = (TCall *)cookie;
 
   TCall *call;
   TDiscon *discon;
   char *buf;
+  EndpointRef worker;
+  int recieved;
+  OTByteCount size;
+
+  /*switch (endpoint->GetEndpointState()) {
+  case T_UNINIT:
+    mac_error_throw("Unhandled Endpoint State: T_UNINIT\n");
+    break;
+  case T_UNBND:
+    mac_error_throw("Unhandled Endpoint State: T_UNBND\n");
+    break;
+  case T_IDLE:
+    YieldToAnyThread();
+    mac_error_throw("Unhandled Endpoint State: T_IDLE\n");
+    break;
+  case T_OUTCON:
+    OTAccept(endpoint, worker, call);
+    break;
+  case T_INCON:
+    mac_error_throw("Unhandled Endpoint State: T_INCON\n");
+    break;
+  case T_DATAXFER:
+    mac_error_throw("Unhandled Endpoint State: T_DATAXFER\n");
+    break;
+  case T_OUTREL:
+    mac_error_throw("Unhandled Endpoint State: T_OUTREL\n");
+    break;
+  case T_INREL:
+    mac_error_throw("Unhandled Endpoint State: T_INREL\n");
+    break;
+  }*/
 
   switch (code) {
   case T_LISTEN:
@@ -120,12 +154,14 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     break;
   case T_CONNECT:
     // printf("Connected to %s\n", upperCall->addr.buf);
+    call = (TCall *)malloc(sizeof(TCall));
+    ThrowOSErr(OTRcvConnect(endpoint, call));
+    printf("Connected: %s\n", call->addr.buf);
     break;
   case T_DATA:
-    mac_error_throw("Unhandled OTLook: T_DATA\n");
-    break;
   case T_EXDATA:
-    mac_error_throw("Unhandled OTLook: T_EXDATA\n");
+    // got data
+    // we always try to read, so ignore this event
     break;
   case T_DISCONNECT:
     discon = (TDiscon *)malloc(sizeof(TDiscon));

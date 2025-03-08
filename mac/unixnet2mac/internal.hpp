@@ -12,6 +12,7 @@
 class Socket {
 
 public:
+  size_t id;
   TEndpoint *endpoint = NULL;
   OTConfiguration *cfg = NULL;
   TEndpointInfo info = {0, 0, 0, 0, 0, 0, 0, 0};

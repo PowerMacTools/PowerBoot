@@ -9,11 +9,15 @@ ssize_t recv(int fd, void *buf, size_t nbytes, int flags) {
   OTResult ret = kOTNoDataErr;
   OTFlags ot_flags = 0;
 
+  YieldToAnyThread();
+
   if (nbytes == 0)
     return 0;
 
   // in non-blocking mode, returns instantly always
   ret = OTRcv(s->endpoint, buf, nbytes, &ot_flags);
+
+  YieldToAnyThread();
 
   // if we got bytes, return them
   if (ret >= 0)
@@ -26,19 +30,18 @@ ssize_t recv(int fd, void *buf, size_t nbytes, int flags) {
   }
 
   // if we got anything other than data or nothing, return an error
-  if (ret != kOTNoDataErr)
-    return -1;
-
   return -1;
 }
 
 ssize_t send(int fd, const void *buf, size_t nbytes, int flags) {
   auto s = openSockets.at(fd);
-  int ret = -3155;
+  int ret = -1;
 
-  while (ret == -3155) {
-    ret = OTSnd(s->endpoint, (void *)buf, nbytes, 0);
-  }
+  YieldToAnyThread();
+
+  ret = OTSnd(s->endpoint, (void *)buf, nbytes, 0);
+
+  YieldToAnyThread();
 
   if (ret != kOTNoError) {
     if (ret == kOTLookErr) {
