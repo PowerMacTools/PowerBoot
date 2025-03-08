@@ -1,3 +1,4 @@
+#include "../../console/console.hpp"
 
 #include "sftp.hpp"
 #include <cerrno>
@@ -9,15 +10,31 @@
 
 ssize_t SFTP::recv_callback(libssh2_socket_t sockfd, void *buffer,
                             size_t length, int flags, void **abstract) {
-  int r = EAGAIN;
-  while (r != EAGAIN) {
-    r = recv(sockfd, buffer, length, flags);
-  };
+  int rc = recv(sockfd, buffer, length, flags);
+  printf("read: %d\n", rc);
 
-  return r;
+  if (rc < 0) {
+    if (rc == -11 || rc == -1) {
+      return -EAGAIN;
+    } else {
+      read_error_throw("read error: %d\n", rc);
+    }
+  }
+  return rc;
 }
 
 ssize_t SFTP::send_callback(libssh2_socket_t sockfd, const void *buffer,
                             size_t length, int flags, void **abstract) {
-  return send(sockfd, buffer, length, flags);
+  int rc = 0;
+  rc = send(sockfd, buffer, length, flags);
+  printf("written: %d\n", rc);
+
+  if (rc <= 0) {
+    if (rc == -11 || rc == -1) {
+      return -EAGAIN;
+    } else {
+      read_error_throw("write error: %d\n", rc);
+    }
+  }
+  return rc;
 }

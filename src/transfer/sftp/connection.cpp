@@ -23,14 +23,14 @@ void SFTP::connect(ConnectionOptions options) {
     printf("Failed to create connection thread: %d", err);
   }
 
+#else
+  ::read_thread(&args);
+#endif
   while (read_thread_state != ReadThreadState::Open) {
 #ifdef __RETRO__
     YieldToAnyThread();
 #endif
   }
-#else
-  ::read_thread(&args);
-#endif
 }
 
 int SFTP::wait() {

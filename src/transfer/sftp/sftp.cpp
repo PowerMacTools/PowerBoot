@@ -18,7 +18,7 @@ SFTP::SFTP() {
                 this->error_msg(rc)->c_str());
   }
 
-#ifdef __RETRO__
+  // #ifdef __RETRO__
   libssh2_session_callback_set(session, LIBSSH2_CALLBACK_SEND,
                                (void *)SFTP::send_callback);
   libssh2_session_callback_set(session, LIBSSH2_CALLBACK_RECV,
@@ -26,14 +26,14 @@ SFTP::SFTP() {
   libssh2_session_callback_set(session, LIBSSH2_CALLBACK_DISCONNECT,
                                (void *)SFTP::recv_callback);
 
-#endif
+  // #endif
   /* Since we have set non-blocking, tell libssh2 we are non-blocking */
   libssh2_session_set_blocking(session, 0);
 }
 
 SFTP::~SFTP() {
   libssh2_sftp_close(sftp_handle);
-  libssh2_sftp_shutdown(sftp_session);
+  libssh2_sftp_shutdown(sftp_pointer);
   if (session) {
     while (libssh2_session_disconnect(session, "Normal Shutdown") ==
            LIBSSH2_ERROR_EAGAIN)

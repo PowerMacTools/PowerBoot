@@ -19,13 +19,13 @@ Attributes *SFTP::lstat(std::string path, Attributes *attr) {
   LIBSSH2_SFTP_ATTRIBUTES attrs = ATTRIBUTE_TRANSLATE(attr);
 
   RC_ERR_HANDLE("libssh2_sftp_lstat", this,
-                libssh2_sftp_lstat(sftp_session, path.c_str(), &attrs));
+                libssh2_sftp_lstat(sftp_pointer, path.c_str(), &attrs));
 
   return new SFTPAttributes(attrs);
 };
 void SFTP::mkdir(std::string path, int mode) {
   RC_ERR_HANDLE("libssh2_sftp_mkdir", this,
-                libssh2_sftp_mkdir(sftp_session, path.c_str(), mode));
+                libssh2_sftp_mkdir(sftp_pointer, path.c_str(), mode));
 };
 FileHandle *SFTP::openfile(std::string filename, unsigned long flags,
                            long mode) {
@@ -33,7 +33,7 @@ FileHandle *SFTP::openfile(std::string filename, unsigned long flags,
 
   do {
     handle =
-        libssh2_sftp_open_ex(sftp_session, filename.c_str(), filename.length(),
+        libssh2_sftp_open_ex(sftp_pointer, filename.c_str(), filename.length(),
                              flags, mode, LIBSSH2_SFTP_OPENFILE);
 
     if (!handle) {
@@ -53,7 +53,7 @@ DirHandle *SFTP::opendir(std::string path) {
   LIBSSH2_SFTP_HANDLE *handle = NULL;
 
   do {
-    handle = libssh2_sftp_open_ex(sftp_session, path.c_str(), path.length(), 0,
+    handle = libssh2_sftp_open_ex(sftp_pointer, path.c_str(), path.length(), 0,
                                   0, LIBSSH2_SFTP_OPENDIR);
 
     if (!handle) {
@@ -72,27 +72,27 @@ DirHandle *SFTP::opendir(std::string path) {
 void SFTP::rename(std::string sourcefile, std::string destfile) {
   RC_ERR_HANDLE(
       "libssh2_sftp_rename", this,
-      libssh2_sftp_rename(sftp_session, sourcefile.c_str(), destfile.c_str()));
+      libssh2_sftp_rename(sftp_pointer, sourcefile.c_str(), destfile.c_str()));
 };
 
 void SFTP::rmdir(std::string path) {
   RC_ERR_HANDLE("libssh2_sftp_rmdir", this,
-                libssh2_sftp_rmdir(sftp_session, path.c_str()));
+                libssh2_sftp_rmdir(sftp_pointer, path.c_str()));
 };
 void SFTP::setstat(std::string path, Attributes *attrs) {
   auto attr = ATTRIBUTE_TRANSLATE(attrs);
   RC_ERR_HANDLE("libssh2_sftp_setstat", this,
-                libssh2_sftp_setstat(sftp_session, path.c_str(), &attr));
+                libssh2_sftp_setstat(sftp_pointer, path.c_str(), &attr));
 };
 void SFTP::shutdown() {
   RC_ERR_HANDLE("libssh2_sftp_shutdown", this,
-                libssh2_sftp_shutdown(sftp_session));
+                libssh2_sftp_shutdown(sftp_pointer));
 };
 
 Attributes *SFTP::stat(std::string path) {
   LIBSSH2_SFTP_ATTRIBUTES attrs = {0};
   RC_ERR_HANDLE("libssh2_sftp_stat", this,
-                libssh2_sftp_stat(sftp_session, path.c_str(), &attrs));
+                libssh2_sftp_stat(sftp_pointer, path.c_str(), &attrs));
   return new SFTPAttributes(attrs);
 };
 StatVFS *SFTP::statvfs(std::string path) {
@@ -100,33 +100,33 @@ StatVFS *SFTP::statvfs(std::string path) {
       (LIBSSH2_SFTP_STATVFS *)malloc(sizeof(LIBSSH2_SFTP_STATVFS));
   RC_ERR_HANDLE(
       "libssh2_sftp_statvfs", this,
-      libssh2_sftp_statvfs(sftp_session, path.c_str(), path.length(), st));
+      libssh2_sftp_statvfs(sftp_pointer, path.c_str(), path.length(), st));
 
   return new SFTPStatVFS(*st);
 };
 
 void SFTP::symlink(std::string path, std::string target) {
   RC_ERR_HANDLE("libssh2_sftp_symlink", this,
-                libssh2_sftp_symlink_ex(sftp_session, path.c_str(),
+                libssh2_sftp_symlink_ex(sftp_pointer, path.c_str(),
                                         path.length(), target.data(),
                                         target.size(), LIBSSH2_SFTP_SYMLINK));
 };
 void SFTP::readlink(std::string path, std::string target) {
   RC_ERR_HANDLE("libssh2_sftp_read_link", this,
-                libssh2_sftp_symlink_ex(sftp_session, path.c_str(),
+                libssh2_sftp_symlink_ex(sftp_pointer, path.c_str(),
                                         path.length(), target.data(),
                                         target.size(), LIBSSH2_SFTP_READLINK));
 };
 void SFTP::realpath(std::string path, std::string target) {
   RC_ERR_HANDLE("libssh2_sftp_symlink", this,
-                libssh2_sftp_symlink_ex(sftp_session, path.c_str(),
+                libssh2_sftp_symlink_ex(sftp_pointer, path.c_str(),
                                         path.length(), target.data(),
                                         target.size(), LIBSSH2_SFTP_REALPATH));
 };
 
 void SFTP::unlink(std::string filename) {
   RC_ERR_HANDLE("libssh2_sftp_unlink", this,
-                libssh2_sftp_unlink_ex(sftp_session, filename.c_str(),
+                libssh2_sftp_unlink_ex(sftp_pointer, filename.c_str(),
                                        filename.length()));
 };
 

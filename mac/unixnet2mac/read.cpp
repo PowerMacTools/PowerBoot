@@ -34,20 +34,17 @@ ssize_t recv(int fd, void *buf, size_t nbytes, int flags) {
 
 ssize_t send(int fd, const void *buf, size_t nbytes, int flags) {
   auto s = openSockets.at(fd);
-  int ret = -1;
+  int ret = -3155;
 
-  ret = OTSnd(s->endpoint, (void *)buf, nbytes, 0);
+  while (ret == -3155) {
+    ret = OTSnd(s->endpoint, (void *)buf, nbytes, 0);
+  }
 
-  // TODO FIXME handle cases better, i.e. translate error cases
-  if (ret == kOTLookErr) {
-    OTResult lookresult = OTLook(s->endpoint);
-    // printf("kOTLookErr, reason: %ld\n", lookresult);
-
-    switch (lookresult) {
-    default:
-      // printf("what?\n");
-      ret = -1;
-      break;
+  if (ret != kOTNoError) {
+    if (ret == kOTLookErr) {
+      return -1;
+    } else {
+      ThrowOSErr(ret);
     }
   }
 

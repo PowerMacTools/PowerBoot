@@ -40,7 +40,8 @@ void *SFTP::read_thread(ConnectionOptions options) {
     read_error_throw("failed to connect.");
   }
 
-  while ((rc = libssh2_session_handshake(session, 0)) == LIBSSH2_ERROR_EAGAIN) {
+  while ((rc = libssh2_session_handshake(session, sock)) ==
+         LIBSSH2_ERROR_EAGAIN) {
 #ifdef __RETRO__
     YieldToAnyThread();
 #endif
@@ -90,9 +91,9 @@ void *SFTP::read_thread(ConnectionOptions options) {
   }
 
   do {
-    sftp_session = libssh2_sftp_init(session);
+    sftp_pointer = libssh2_sftp_init(session);
 
-    if (!sftp_session) {
+    if (!sftp_pointer) {
       if (rc = libssh2_session_last_errno(session);
           rc == LIBSSH2_ERROR_EAGAIN) {
         this->wait();
@@ -101,7 +102,7 @@ void *SFTP::read_thread(ConnectionOptions options) {
                          this->error_msg()->c_str());
       }
     }
-  } while (!sftp_session);
+  } while (!sftp_pointer);
 
   channel = libssh2_channel_open_session(session);
 

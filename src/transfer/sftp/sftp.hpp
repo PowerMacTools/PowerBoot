@@ -120,7 +120,7 @@ private:
 
   const char *fingerprint;
   int rc;
-  LIBSSH2_SFTP *sftp_session;
+  LIBSSH2_SFTP *sftp_pointer;
   LIBSSH2_SFTP_HANDLE *sftp_handle;
   LIBSSH2_CHANNEL *channel;
   char *recv_buffer;
