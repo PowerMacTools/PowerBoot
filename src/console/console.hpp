@@ -9,7 +9,7 @@
 
 extern std::vector<std::string> lineBuffer;
 
-#ifdef __RETRO__
+// #ifdef __RETRO__
 void MacMain();
 
 #include "MacTypes.h"
@@ -18,15 +18,15 @@ void MacMain();
 extern WindowPtr window;
 extern ThreadID main_thread_id;
 extern ThreadID read_thread_id;
-#endif
+// #endif
 
 std::runtime_error formatted_error(const char *format, ...);
 void error_throw(const char *format, ...);
 void read_error_throw(const char *format, ...);
 
-#ifdef __RETRO__
+// #ifdef __RETRO__
 void ScreenDraw(Rect *r);
 void handleColorCode(int code);
-#endif
+// #endif
 
 #endif

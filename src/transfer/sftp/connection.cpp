@@ -34,15 +34,11 @@ void SFTP::connect(ConnectionOptions options) {
 }
 
 int SFTP::wait() {
-  struct timeval timeout;
   int rc;
   fd_set fd;
   fd_set *writefd = NULL;
   fd_set *readfd = NULL;
   int dir;
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 100;
 
   FD_ZERO(&fd);
 
@@ -64,7 +60,7 @@ int SFTP::wait() {
   if (dir & LIBSSH2_SESSION_BLOCK_OUTBOUND)
     writefd = &fd;
 
-  rc = select((int)(sock + 1), readfd, writefd, NULL, &timeout);
+  rc = select((int)(sock + 1), readfd, writefd, NULL, NULL);
 
   return rc;
 }

@@ -8,6 +8,9 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+#include <stdlib.h>
+#include <string>
+#include <vector>
 
 #include "netinet/in.h"
 #include "sys/socket.h"
@@ -111,64 +114,89 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   Socket *s = ((Socket *)usrPtr);
   EndpointRef endpoint = s->endpoint;
 
-  TCall *upperCall = (TCall *)cookie;
-
+  // T_CONNECT
   TCall *call;
-  TDiscon *discon;
   char *buf;
-  EndpointRef worker;
-  int recieved;
-  OTByteCount size;
 
-  /*switch (endpoint->GetEndpointState()) {
-  case T_UNINIT:
-    mac_error_throw("Unhandled Endpoint State: T_UNINIT\n");
-    break;
-  case T_UNBND:
-    mac_error_throw("Unhandled Endpoint State: T_UNBND\n");
-    break;
-  case T_IDLE:
-    YieldToAnyThread();
-    mac_error_throw("Unhandled Endpoint State: T_IDLE\n");
-    break;
-  case T_OUTCON:
-    OTAccept(endpoint, worker, call);
-    break;
-  case T_INCON:
-    mac_error_throw("Unhandled Endpoint State: T_INCON\n");
-    break;
-  case T_DATAXFER:
-    mac_error_throw("Unhandled Endpoint State: T_DATAXFER\n");
-    break;
-  case T_OUTREL:
-    mac_error_throw("Unhandled Endpoint State: T_OUTREL\n");
-    break;
-  case T_INREL:
-    mac_error_throw("Unhandled Endpoint State: T_INREL\n");
-    break;
-  }*/
+  // T_DATA
+  void *dataBuf;
+  OTByteCount dataSize;
+  OTFlags dataFlags;
+
+  // T_DISCONNECT
+  TDiscon *discon;
 
   switch (code) {
   case T_LISTEN:
     mac_error_throw("Unhandled OTLook: T_LISTEN\n");
     break;
   case T_CONNECT:
-    // printf("Connected to %s\n", upperCall->addr.buf);
+    // initialization
     call = (TCall *)malloc(sizeof(TCall));
     buf = (char *)malloc(255);
     OTMemzero(buf, 255);
 
+    // action
     ThrowOSErr(OTRcvConnect(endpoint, call));
     OTInetAddressToName(s->inetsvc, (InetHost)call->addr.buf, buf);
     printf("Connected: %s\n", buf);
     break;
   case T_DATA:
   case T_EXDATA:
-    // got data
-    // we always try to read, so ignore this event
+    // initialization
+    OTCountDataBytes(s->endpoint, &dataSize);
+    dataBuf = malloc(dataSize);
+    OTMemzero(dataBuf, dataSize);
+
+    // action
+    dataFlags = T_MORE;
+
+    printf("OT wants to recv %ld\n", dataSize);
+
+    if (s->recv_halt) {
+      for (;;) {
+        OSErr OTRcvResult = OTRcv(s->endpoint, dataBuf, dataSize, &dataFlags);
+        if (OTRcvResult == kOTNoDataErr) {
+          s->recvBuf.push_back(
+              std::vector((uint8_t *)dataBuf, (uint8_t *)dataBuf + dataSize));
+          // s->recv_halt = false;
+
+          break;
+        } else {
+          ThrowOSErr(OTRcvResult);
+        }
+
+        YieldToAnyThread();
+
+        switch (dataFlags) {
+        case T_MORE:
+          break;
+        case T_EXPEDITED:
+          printf("T_EXPEDITED\n");
+          break;
+        case T_ACKNOWLEDGED:
+          printf("T_ACKNOWLEDGED\n");
+          break;
+        case T_PARTIALDATA:
+          printf("T_PARTIALDATA\n");
+          break;
+        case T_NORECEIPT:
+          printf("T_NORECEIPT\n");
+          break;
+        case T_TIMEDOUT:
+          mac_error_throw("Timed out recieving data");
+          break;
+        }
+        YieldToAnyThread();
+      };
+    }
+
     break;
   case T_DISCONNECT:
+    // initialization
     discon = (TDiscon *)malloc(sizeof(TDiscon));
+
+    // action
     OTRcvDisconnect(endpoint, discon);
     mac_error_throw("Disconnected: %s\n", discon->reason);
     break;
@@ -179,9 +207,43 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     mac_error_throw("Unhandled OTLook: T_UDERR\n");
     break;
   case T_ORDREL:
-    mac_error_throw("Unhandled OTLook: T_ORDREL\n");
+    // mac_error_throw("Orderly disconnect\n");
     break;
   case T_GODATA:
+    /*if (s->send_halt) {
+          for (;;) {
+            OSErr OTSndResult = OTRcv(s->endpoint, dataBuf, dataSize, 0);
+            if (OTSndResult == kOTNoDataErr) {
+              s->sendBuf.push_back(
+                  std::vector((uint8_t *)dataBuf, (uint8_t *)dataBuf +
+       dataSize)); s->send_halt = false; break; } else {
+              ThrowOSErr(OTSndResult);
+            }
+
+            YieldToAnyThread();
+
+            switch (dataFlags) {
+            case T_MORE:
+              break;
+            case T_EXPEDITED:
+              printf("T_EXPEDITED\n");
+              break;
+            case T_ACKNOWLEDGED:
+              printf("T_ACKNOWLEDGED\n");
+              break;
+            case T_PARTIALDATA:
+              printf("T_PARTIALDATA\n");
+              break;
+            case T_NORECEIPT:
+              printf("T_NORECEIPT\n");
+              break;
+            case T_TIMEDOUT:
+              mac_error_throw("Timed out recieving data");
+              break;
+            }
+            YieldToAnyThread();
+          };
+        };*/
     mac_error_throw("Unhandled OTLook: T_GODATA\n");
     break;
   case T_GOEXDATA:

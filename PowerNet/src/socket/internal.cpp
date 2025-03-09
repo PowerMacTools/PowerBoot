@@ -491,3 +491,14 @@ void mac_error_throw(const char *format, ...) {
   DisposeThread(main_thread_id, what, false);
   YieldToAnyThread();
 }
+
+std::vector<uint8_t> flatten(const std::vector<std::vector<uint8_t>> &v) {
+  std::size_t total_size = 0;
+  for (const auto &sub : v)
+    total_size += sub.size(); // I wish there was a transform_accumulate
+  std::vector<uint8_t> result;
+  result.reserve(total_size);
+  for (const auto &sub : v)
+    result.insert(result.end(), sub.begin(), sub.end());
+  return result;
+}

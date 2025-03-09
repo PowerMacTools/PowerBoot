@@ -1,4 +1,4 @@
-#ifdef __RETRO__
+// #ifdef __RETRO__
 
 #include "console.hpp"
 #include "Events.h"
@@ -56,8 +56,8 @@ void console_setup(void) {
   InsetRect(&initial_window_bounds, 20, 20);
   initial_window_bounds.top += 40;
 
-  initial_window_bounds.bottom = initial_window_bounds.top + cell_height * 16;
-  initial_window_bounds.right = initial_window_bounds.left + cell_width * 44;
+  initial_window_bounds.bottom = initial_window_bounds.top + cell_height * 60;
+  initial_window_bounds.right = initial_window_bounds.left + cell_width * 120;
 
   Rect qdR = qd.screenBits.bounds;
   qdR.top += 40;
@@ -204,12 +204,6 @@ void ScreenDraw(Rect *rec) {
         break;
       case '\r':
         x = rec->left + 9;
-
-        // if (lastLine.has_value()) {
-        //   lineBuffer.erase(lastLine.value(), lineBuffer.end());
-        // } else {
-        //   lineBuffer.erase(lineBuffer.begin(), lineBuffer.end());
-        // }
         break;
       case 'm':
         if (makingColor) {
@@ -228,6 +222,13 @@ void ScreenDraw(Rect *rec) {
         } else {
           MoveTo(x, y);
           DrawChar(c);
+
+          Rect r = (Rect){
+              .top = y,
+              .left = x,
+              .bottom = (short)(y + 12),
+              .right = (short)(x + CharWidth(ch) + 9),
+          };
         }
         break;
       }
@@ -235,9 +236,9 @@ void ScreenDraw(Rect *rec) {
     }
     lastLine = {};
   }
-  ThreadEndCritical();
-
   InvalRect(rec);
+
+  ThreadEndCritical();
 
   TextFont(save_font);
   TextSize(save_font_size);
@@ -312,4 +313,4 @@ void handleColorCode(int code) {
   }
 }
 
-#endif
+// #endif
