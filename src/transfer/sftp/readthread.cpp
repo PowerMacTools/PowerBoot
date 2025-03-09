@@ -48,7 +48,7 @@ void *SFTP::read_thread(ConnectionOptions options) {
   }
 
   if (rc) {
-    read_error_throw("Failure establishing SSH session: %s",
+    read_error_throw("\nFailure establishing SSH session: %s",
                      error_msg()->c_str());
   }
 

@@ -1,1 +1,0 @@
-Libraries specifically for the MacPort, mainly a translation layer for Unix networking functions.

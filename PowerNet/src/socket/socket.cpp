@@ -1,15 +1,12 @@
+#include "sys/socket.h"
 #include "MacTypes.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
 #include "Threads.h"
 #include "internal.hpp"
-#include "unixnet2mac.h"
 #include <cstddef>
 
-// commented out to shut clangd up
-// #include <sys/socket.h>
-
-int socket(int domain, int type, int protocol) {
+extern "C" int socket(int domain, int type, int protocol) {
   OSErr err = noErr;
   if (err = InitOpenTransport(); err != noErr) {
     mac_error_throw("Error initializing OpenTransport: %d\n", err);

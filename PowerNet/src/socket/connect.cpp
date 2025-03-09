@@ -5,10 +5,12 @@
 #include "OpenTransportProviders.h"
 #include "Threads.h"
 #include "internal.hpp"
-#include "unixnet2mac.h"
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+
+#include "netinet/in.h"
+#include "sys/socket.h"
 
 bool finished = false;
 
@@ -21,7 +23,8 @@ typedef struct {
   socklen_t address_len;
 } connectThreadParams;
 
-int connect(int socket, const struct sockaddr *address, socklen_t address_len) {
+extern "C" int connect(int socket, const struct sockaddr *address,
+                       socklen_t address_len) {
   ThreadID connect_thread_id = 0;
 
   connectThreadParams params = connectThreadParams{
@@ -63,6 +66,8 @@ void *connect_thread(void *arg) {
   auto s = openSockets.at(socket);
   YieldToAnyThread();
 
+  s->halting = true;
+
   ThrowOSErr(OTSetBlocking(s->endpoint));
   ThrowOSErr(OTSetSynchronous(s->endpoint));
 
@@ -79,17 +84,12 @@ void *connect_thread(void *arg) {
   OTInitInetAddress(&addr, address->sin_port, address->sin_addr.s_addr);
   YieldToAnyThread();
 
-  char *ip = (char *)malloc(32);
-  snprintf(ip, 32, "%ld.%ld.%ld.%ld", (addr.fHost & 0xFF000000) >> 24,
-           (addr.fHost & 0x00FF0000) >> 16, (addr.fHost & 0x0000FF00) >> 8,
-           addr.fHost & 0x000000FF);
-  YieldToAnyThread();
-
   OTMemzero(&s->sndCall, sizeof(TCall));
   s->sndCall.addr.buf = (UInt8 *)&addr;
   s->sndCall.addr.len = sizeof(addr);
 
   finished = false;
+  s->halting = true;
 
   auto OTConnectStatus = OTConnect(s->endpoint, &s->sndCall, nil);
   YieldToAnyThread();
@@ -155,8 +155,12 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   case T_CONNECT:
     // printf("Connected to %s\n", upperCall->addr.buf);
     call = (TCall *)malloc(sizeof(TCall));
+    buf = (char *)malloc(255);
+    OTMemzero(buf, 255);
+
     ThrowOSErr(OTRcvConnect(endpoint, call));
-    printf("Connected: %s\n", call->addr.buf);
+    OTInetAddressToName(s->inetsvc, (InetHost)call->addr.buf, buf);
+    printf("Connected: %s\n", buf);
     break;
   case T_DATA:
   case T_EXDATA:
@@ -259,6 +263,8 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
     mac_error_throw("Unhandled OTLook: kOTProviderIsClosed\n");
     break;
   }
+
+  s->halting = false;
 
   YieldToAnyThread();
 }

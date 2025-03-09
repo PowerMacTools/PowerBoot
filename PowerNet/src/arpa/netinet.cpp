@@ -1,13 +1,8 @@
-#include "OpenTransport.h"
-#include "OpenTransportProviders.h"
-#include "Threads.h"
-#include "internal.hpp"
-#include "unixnet2mac.h"
-#include <cstdarg>
-#include <cstdlib>
-#include <ctype.h>
 
-unsigned long inet_addr(const char *cp) {
+#include <cctype>
+#include <cstddef>
+
+extern "C" unsigned long inet_addr(const char *cp) {
   unsigned long val;
   int base, n;
   char c;
@@ -60,26 +55,4 @@ unsigned long inet_addr(const char *cp) {
   }
 
   return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
-}
-
-Socket::~Socket() { OTCloseProvider(endpoint); }
-
-std::unordered_map<size_t, Socket *> openSockets =
-    std::unordered_map<size_t, Socket *>();
-
-void mac_error_throw(const char *format, ...) {
-  va_list arglist;
-
-  va_start(arglist, format);
-
-  char *buf = (char *)malloc(255);
-  vsnprintf(buf, 255, format, arglist);
-
-  va_end(arglist);
-
-  printf("%s\n", buf);
-
-  void *what;
-  DisposeThread(main_thread_id, what, false);
-  YieldToAnyThread();
 }

@@ -2,6 +2,3 @@
 	path = opentransport-mbedtls
 	url = https://github.com/cy384/opentransport-mbedtls/
 	branch = development
-[submodule "opentransport-libssh2"]
-	path = opentransport-libssh2
-	url = https://github.com/cy384/opentransport-libssh2/

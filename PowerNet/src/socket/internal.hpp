@@ -12,6 +12,7 @@
 class Socket {
 
 public:
+  bool halting;
   size_t id;
   TEndpoint *endpoint = NULL;
   OTConfiguration *cfg = NULL;

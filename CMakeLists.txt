@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.28)
 include(FetchContent)
 
 FILE(GLOB_RECURSE COMMON_SOURCES ./src/*.c ./src/*.cpp ./src/*.r)
-FILE(GLOB_RECURSE MAC_SOURCES ./mac/*.c ./mac/*.cpp ./mac/*.r)
+FILE(GLOB_RECURSE MAC_SOURCES ./PowerNet/*.c ./PowerNet/*.cpp ./PowerNet/*.r)
 
 # binary creation
 if(CMAKE_SYSTEM_NAME MATCHES Retro)
@@ -23,15 +23,21 @@ set(UNSAFE_BUILD ON CACHE BOOL "ignore mac os jank for mbedtls" FORCE)
 set(ENABLE_TESTING OFF CACHE BOOL "disable mbedtls tests" FORCE)
 add_subdirectory(opentransport-mbedtls)
 
-# set up and build libssh2
+# set up libssh2
 set(CRYPTO_BACKEND mbedTLS)
+set(MBEDTLS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/opentransport-mbedtls/include)
+set(MBEDCRYPTO_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/opentransport-mbedtls/library)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "disable libssh2 shared libs" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "disable libssh2 examples" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "disable libssh2 tests" FORCE)
-add_subdirectory(opentransport-libssh2)
+set(HAVE_SYS_UIO_H ON)
+include_directories("./PowerNet/include")
 
 # otherwise, use FetchContent to get upstream libssh2.
 else()
+
+endif()
+
 FetchContent_Declare(
     libssh2
     GIT_REPOSITORY "https://github.com/libssh2/libssh2/"
@@ -39,7 +45,6 @@ FetchContent_Declare(
     BRANCH "libssh2-1.11.1"
 )
 FetchContent_MakeAvailable(libssh2)
-endif()
 
 # link libssh2.
 # on mac, we also wanna link the other dependencies and add some function flags.
@@ -62,8 +67,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC libssh2 mbedtls)
 endif()
 
 # misc
-include_directories("./include")
 IF(CMAKE_SYSTEM_NAME MATCHES Retro)
-include_directories("./mac/include")
 target_compile_definitions(${PROJECT_NAME} PUBLIC "__RETRO__")
 endif()

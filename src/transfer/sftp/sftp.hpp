@@ -11,11 +11,10 @@
 
 #ifdef __RETRO__
 #include "Threads.h"
-#include <unixnet2mac.h>
-#else
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #endif
+
+#include "netinet/in.h"
+#include <arpa/inet.h>
 
 #ifndef __SFTP_HPP
 #define __SFTP_HPP
@@ -168,10 +167,6 @@ public:
 
   void unlink(std::string filename) override;
 
-  static ssize_t recv_callback(libssh2_socket_t sockfd, void *buffer,
-                               size_t length, int flags, void **abstract);
-  static ssize_t send_callback(libssh2_socket_t sockfd, const void *buffer,
-                               size_t length, int flags, void **abstract);
   friend class SFTPAttributes;
 };
 

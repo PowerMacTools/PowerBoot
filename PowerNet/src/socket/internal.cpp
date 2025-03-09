@@ -1,6 +1,9 @@
 #include "internal.hpp"
+#include "OpenTransport.h"
+#include "Threads.h"
+#include "internal.hpp"
 #include <cstdarg>
-#include <stdexcept>
+#include <cstdlib>
 
 void __throw_os_err(const char *file, int line, const char *func, OSErr err) {
   switch (err) {
@@ -465,4 +468,26 @@ void __throw_os_err(const char *file, int line, const char *func, OSErr err) {
                     func, file, line);
     return;
   }
+}
+
+Socket::~Socket() { OTCloseProvider(endpoint); }
+
+std::unordered_map<size_t, Socket *> openSockets =
+    std::unordered_map<size_t, Socket *>();
+
+void mac_error_throw(const char *format, ...) {
+  va_list arglist;
+
+  va_start(arglist, format);
+
+  char *buf = (char *)malloc(255);
+  vsnprintf(buf, 255, format, arglist);
+
+  va_end(arglist);
+
+  printf("%s\n", buf);
+
+  void *what;
+  DisposeThread(main_thread_id, what, false);
+  YieldToAnyThread();
 }
