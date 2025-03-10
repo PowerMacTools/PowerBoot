@@ -10,12 +10,14 @@ extern "C" int select(int nfds, fd_set *__restrict readfds,
                       struct timeval *__restrict timeout) {
   if (readfds != NULL) {
     auto reads = openSockets.at(readfds->fds_bits[0]);
+    MemTest(reads, true);
     while (reads->recv_halt) {
       YieldToAnyThread();
     }
   }
   if (writefds != NULL) {
     auto writes = openSockets.at(writefds->fds_bits[0]);
+    MemTest(writes, true);
     while (writes->send_halt) {
       YieldToAnyThread();
     }

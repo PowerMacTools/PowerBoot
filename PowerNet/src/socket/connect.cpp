@@ -1,6 +1,7 @@
 #include "MacErrors.h"
 #include "MacMemory.h"
 #include "MacTypes.h"
+#include "Memory.h"
 #include "OpenTransport.h"
 #include "OpenTransportProviders.h"
 #include "Threads.h"
@@ -9,7 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <stdlib.h>
-#include <string>
 #include <vector>
 
 #include "netinet/in.h"
@@ -61,6 +61,8 @@ void *connect_thread(void *arg) {
   int socket = params->socket;
   sockaddr_in *address = (sockaddr_in *)params->address;
 
+  MemTest(address, true);
+
   socklen_t address_len = params->address_len;
 
   OSStatus err;
@@ -68,6 +70,7 @@ void *connect_thread(void *arg) {
 
   auto s = openSockets.at(socket);
   YieldToAnyThread();
+  MemTest(s, true);
 
   s->halting = true;
 
@@ -100,7 +103,14 @@ void *connect_thread(void *arg) {
     ThrowOSErr(OTConnectStatus);
   }
 
-  YieldToAnyThread();
+  while (!finished) {
+    YieldToAnyThread();
+  }
+
+  OTRemoveNotifier(s->endpoint);
+
+  ThrowOSErr(OTSetBlocking(s->endpoint));
+  ThrowOSErr(OTSetSynchronous(s->endpoint));
 
   return 0;
 }
@@ -108,10 +118,10 @@ void *connect_thread(void *arg) {
 void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   YieldToAnyThread();
 
-  finished = true;
   ThrowOSErr(res);
 
   Socket *s = ((Socket *)usrPtr);
+  MemTest(s, true);
   EndpointRef endpoint = s->endpoint;
 
   // T_CONNECT
@@ -122,6 +132,7 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   void *dataBuf;
   OTByteCount dataSize;
   OTFlags dataFlags;
+  OSErr OTRcvResult;
 
   // T_DISCONNECT
   TDiscon *discon;
@@ -133,63 +144,43 @@ void notifier(void *usrPtr, OTEventCode code, OTResult res, void *cookie) {
   case T_CONNECT:
     // initialization
     call = (TCall *)malloc(sizeof(TCall));
-    buf = (char *)malloc(255);
-    OTMemzero(buf, 255);
+    buf = (char *)malloc(64);
+    OTMemzero(buf, 64);
 
     // action
     ThrowOSErr(OTRcvConnect(endpoint, call));
     OTInetAddressToName(s->inetsvc, (InetHost)call->addr.buf, buf);
-    printf("Connected: %s\n", buf);
+    printf("Connected.\n");
+    finished = true;
     break;
   case T_DATA:
   case T_EXDATA:
     // initialization
-    OTCountDataBytes(s->endpoint, &dataSize);
-    dataBuf = malloc(dataSize);
-    OTMemzero(dataBuf, dataSize);
-
-    // action
+    dataBuf = malloc(s->nbytes);
+    OTMemzero(dataBuf, s->nbytes);
     dataFlags = T_MORE;
+    YieldToAnyThread();
 
-    printf("OT wants to recv %ld\n", dataSize);
-
-    if (s->recv_halt) {
-      for (;;) {
-        OSErr OTRcvResult = OTRcv(s->endpoint, dataBuf, dataSize, &dataFlags);
-        if (OTRcvResult == kOTNoDataErr) {
-          s->recvBuf.push_back(
-              std::vector((uint8_t *)dataBuf, (uint8_t *)dataBuf + dataSize));
-          // s->recv_halt = false;
-
-          break;
-        } else {
-          ThrowOSErr(OTRcvResult);
-        }
-
-        YieldToAnyThread();
-
-        switch (dataFlags) {
-        case T_MORE:
-          break;
-        case T_EXPEDITED:
-          printf("T_EXPEDITED\n");
-          break;
-        case T_ACKNOWLEDGED:
-          printf("T_ACKNOWLEDGED\n");
-          break;
-        case T_PARTIALDATA:
-          printf("T_PARTIALDATA\n");
-          break;
-        case T_NORECEIPT:
-          printf("T_NORECEIPT\n");
-          break;
-        case T_TIMEDOUT:
-          mac_error_throw("Timed out recieving data");
-          break;
-        }
-        YieldToAnyThread();
-      };
+  // action
+  fuck:
+    OTRcvResult = OTRcv(s->endpoint, dataBuf, s->nbytes, &dataFlags);
+    YieldToAnyThread();
+    if (OTRcvResult < 0) {
+      if (OTRcvResult != kOTNoDataErr) {
+        ThrowOSErr(OTRcvResult);
+      }
+      break;
+    } else {
+      s->recvBuf.push_back(std::vector((uint8_t *)dataBuf,
+                                       (uint8_t *)dataBuf + (OTRcvResult - 1)));
     }
+
+    if (dataFlags == T_MORE) {
+      goto fuck;
+    }
+    s->recv_halt = false;
+
+    YieldToAnyThread();
 
     break;
   case T_DISCONNECT:

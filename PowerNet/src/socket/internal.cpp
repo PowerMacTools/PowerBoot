@@ -1,9 +1,15 @@
 #include "internal.hpp"
+#include "MacErrors.h"
+#include "MacMemory.h"
+#include "MacTypes.h"
+#include "Memory.h"
 #include "OpenTransport.h"
 #include "Threads.h"
 #include "internal.hpp"
 #include <cstdarg>
 #include <cstdlib>
+
+extern ThreadID read_thread_id;
 
 void __throw_os_err(const char *file, int line, const char *func, OSErr err) {
   switch (err) {
@@ -488,7 +494,8 @@ void mac_error_throw(const char *format, ...) {
   printf("%s\n", buf);
 
   void *what;
-  DisposeThread(main_thread_id, what, false);
+  DisposeThread(read_thread_id, NULL, false);
+  DisposeThread(main_thread_id, NULL, false);
   YieldToAnyThread();
 }
 
@@ -501,4 +508,93 @@ std::vector<uint8_t> flatten(const std::vector<std::vector<uint8_t>> &v) {
   for (const auto &sub : v)
     result.insert(result.end(), sub.begin(), sub.end());
   return result;
+}
+
+int __mem_test(const char *file, int line, void *ptr, bool _throw) {
+  if (ptr == NULL) {
+    if (_throw) {
+      mac_error_throw("Memory Error: Null\n\t- Position:%s:%d\n", file, line);
+    }
+    return -1;
+  }
+  YieldToAnyThread();
+  auto isRelocZone = HandleZone((Handle)ptr);
+
+  auto readErr = GetPtrSize((Ptr)ptr);
+  YieldToAnyThread();
+  if (readErr < 0) {
+    if (_throw) {
+      switch (readErr) {
+      case memROZErr:
+        mac_error_throw("Memory Error: ROZ Error\n\t- Position:%s:%d\n", file,
+                        line);
+        break;
+      case memFullErr:
+        mac_error_throw("Memory Error: Not enough room in heap zone\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case nilHandleErr:
+        mac_error_throw("Memory Error: Master Pointer was NIL in HandleZone "
+                        "or other\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memWZErr:
+        mac_error_throw(
+            "Memory Error: WhichZone failed (applied to free block)\n\t- "
+            "Position:%s:%d\n",
+            file, line);
+        break;
+      case memPurErr:
+        mac_error_throw("Memory Error: trying to purge a locked or "
+                        "non-purgeable block\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memAdrErr:
+        mac_error_throw("Memory Error: address was odd; or out of range\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memAZErr:
+        mac_error_throw("Memory Error: Address in zone check failed\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memPCErr:
+        mac_error_throw("Memory Error: Pointer Check failed\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memBCErr:
+        mac_error_throw("Memory Error: Block Check failed\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memSCErr:
+        mac_error_throw("Memory Error: Size Check failed\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      case memLockedErr:
+        mac_error_throw("Memory Error: Trying to move a locked block.\n\t- "
+                        "Position:%s:%d\n",
+                        file, line);
+        break;
+      default:
+        mac_error_throw("Memory Error: Undocumented (%d).\n\t- "
+                        "Position:%s:%d\n",
+                        readErr, file, line);
+        break;
+      }
+      return -1;
+    } else {
+      return readErr;
+    }
+  } else {
+    return noErr;
+  }
+
+  YieldToAnyThread();
 }

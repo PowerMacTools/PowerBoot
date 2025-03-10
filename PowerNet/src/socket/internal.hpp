@@ -14,11 +14,12 @@
 class Socket {
 
 public:
-  bool halting;
-  bool recv_halt;
-  bool send_halt;
+  bool halting = false;
+  bool recv_halt = false;
+  bool send_halt = false;
 
-  size_t id;
+  size_t id = -1;
+  size_t nbytes = -1;
   TEndpoint *endpoint = NULL;
   OTConfiguration *cfg = NULL;
   TEndpointInfo info = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -41,6 +42,9 @@ extern std::unordered_map<size_t, Socket *> openSockets;
 
 void __throw_os_err(const char *file, int line, const char *func, OSErr err);
 #define ThrowOSErr(err) __throw_os_err(__FILE__, __LINE__, #err, err)
+
+int __mem_test(const char *file, int line, void *ptr, bool _throw);
+#define MemTest(ptr, _throw) __mem_test(__FILE__, __LINE__, ptr, _throw)
 
 #define OPEN_SOCKET_INSERT(x, y)                                               \
   openSockets.insert(std::pair<size_t, Socket *>(x, y))
